@@ -1,0 +1,821 @@
+= Hoval Message Protocol
+:toc:
+:toclevels: 4
+
+== Overview
+Hoval uses a CAN extended protocol with 50kbps as transport layer.
+The session layer supports single and multi-part messages (messages consisting of several individual messages).
+
+
+
+The Hoval Message Protocol is a CAN-based communication protocol with:
+
+* 29-bit extended CAN identifiers (addressing)
+* A message layer supporting:
+  - Single messages (up to 8 bytes)
+  - Multi-part messages (segmented payloads)
+* A data model based on:
+  - Function Code
+  - Function Group
+  - Function Number
+  - Datapoint ID
+
+Typical communication flow:
+
+1. A device sends a request (e.g. read or write)
+2. The target responds via broadcast
+3. Messages may be single-frame or multi-part
+
+Structure of a message:
+
+`[Address (29 bit)] + [Payload (2–8 bytes)]`
+
+Some information is not yet 100% clear. 
+These parts are marked in #yellow#.
+
+A lot of information can be found in the Modbus protocol description from Hoval (`TTE-GW-Modbus-datapoints.xlsx`). 
+
+NOTE: This is not complete and there are many messages that are not documented.
+
+=== Terminology
+
+* Function Code: Defines the operation (read, write, etc.)
+* Function Group: Logical grouping of datapoints
+* Function Number: Sub-function within a group
+* Datapoint ID: Unique identifier of a value
+* Unit ID: Device identifier
+
+Message Types:
+
+* Single Message: Complete in one frame
+* Multi-part Message:
+  - Start Message
+  - Intermediate Message(s)
+  - End Message
+
+=== Modbus Datapoints (from `TTE-GW-Modbus-datapoints.xlsx`)
+
+*Modbus ID* +
+Dec: 1 - 25610 +
+Hex: 0x0001 - 0x640A +
+Bits: 15
+
+*Unit ID* +
+Dec: 1 - 1160 +
+Hex: 0x001 - 0x448 +
+Bits: 11
+
+*Function Group* +
+Dec: 0 - 60 +
+Hex: 0x00 - 0x3C +
+Bits: 6
+
+*Function Number* +
+Dec: 0 - 254 +
+Hex: 0x00 - 0xFE +
+Bits: 8
+
+*Datapoint ID* +
+Dec: 0 - 40687 +
+Hex: 0x0 - 0x9EEF +
+Bits: 16
+
+== Analysis of the message protocol
+
+=== Address
+
+The address consists of 29 bits (4 bytes) (Can extended protocol).
+
+An address encodes:
+
+* Sequence counter (multi-part only)
+* Message type (single / multi-part)
+* Sender Unit ID
+* Target Unit ID
+
+
+Example: `1F E0 42 08`
+
+Structure (right to left):
+
+* Bit 25 - 29: Multi-part message counter. This always starts at 0x1F (31) and counts down from there for multi-part messages.
+** Messages with a 0 serve as timer messages/pings or similar.
+* Bit 23-24: Message type:
+** Bit 24 = 1: flag: last message in a multi-part message
+** Bit 23 = 1: flag: first message in a multi-part message
+* Bit 12 - 22: _Unit ID_ of the sender (device number + device type offset)
+* Bit 11 - 1: _Unit ID_ of the target (device number + device type offset; see `TTE-GW-Modbus-datapoints.xlsx`) or `0x7FF` for broadcast
+
+.Address Structure
+====
+Address: `1F E0 42 08`
+
+[width="100%",cols="17%,17%,16%,17%,16%,17%",options="header",]
+|===
+| Byte 4 2+| Byte 3 2+| Byte 2 | Byte 1
+| 1F 2+| E0 2+| 42 | 08
+| Bit 29-25 | Bit 24-23 2+| Bit 12 - 22 2+| Bit 11 - 1
+| 1 1111 | 11 | 10 0000 | 0100 0 | 010 | 0000 1000
+|
+0x1F +
+Multi-part message counter +
+31
+
+|
+0b11 +
+Message Type +
+First and last message (single message)
+
+2+|
+0x408 +
+Unit ID (1024; BM ID 8)
+
+2+|
+0x208 +
+Unit ID (520; HomeVent ID 8)
+
+|===
+====
+
+==== Further examples
+
+Multi-part message consisting of a first message, zero or more intermediate message and a last message  messages
+
+- `1F5047FF` - `11111 01 01000001000 11111111111` - 31, first message, 0x208,
+0x7FF
+- `1E1047FF` - `11110 00 01000001000 11111111111` - 30, continuation, 0x208,
+0x7FF
+- `1D1047FF` - `11101 00 01000001000 11111111111` - 29, continuation, 0x208,
+0x7FF
+- `1C9047FF` - `11100 10 01000001000 11111111111` - 28, last message, 0x208,
+0x7FF
+
+Single request / response
+
+- `1FE04208` - `11111 11 10000001000 01000001000` - 31, Single message, 0x408,
+0x208
+- `1FD047FF` - `11111 11 01000001000 11111111111` - 31, single message, 0x208,
+0x7FF
+
+==== Open points
+
+Messages with the following addresses are currently not entirely clear
+
+- `E047FF`
+- `D047FF`
+
+In particular, these have a message body that does not match the rest of the
+pattern (0x0102).
+
+These appear to be regular "pings". 
+They occur every 5 seconds.
+
+=== Message
+
+A message consists of 2 to 8 bytes
+
+There are different types of messages:
+
+* Message type (bit 24+23) = 11: Single messages
+* Message type (bit 24+23) <> 11: multi-part message.
+* Special messages
+
+==== Single message (message type 0b11)
+
+A single message always has at least 6 bytes
+
+* Byte 1: Always 0x01 (see start message)
+* Byte 2: Function Code - see <<FunctionCodes>>
+* Byte 3: 
+** Bit 8: #Unknown.# Probably first bit of function group
+** Bit 7-1: Function Group (see TTE-GW-Modbus-datapoints.xlsx)
+* Byte 4: Function Number (see TTE-GW-Modbus-datapoints.xlsx) (8 bits)
+* Byte 5 + 6: Datapoint ID (see TTE-GW-Modbus-datapoints.xlsx) (16 bit)
+* Optional: Byte 7-8: Value (8-16 bits)
+
+
+.Single Message
+====
+Message: `01 42 32 00 92 E2 00 E7``
+
+[width="100%",options="header",]
+|===
+| Byte 1 | Byte 2 2+| Byte 3 | Byte 4 | Byte 5 | Byte 6 | Byte 7 | Byte 8
+
+|01 |42 2+|32 | 00 |92 |E2 |00 |E7
+
+| Always 0x01 
+
+| Function Code 
+
+| ?? +
+0b0
+
+| Function group +
+(50)
+
+| Function Number +
+(0)
+
+2+| Datapoint ID +
+(37602)
+
+2+|Value (45) |
+|===
+====
+
+==== Multi-part Message
+A multi-part message consist of a start message (containing the usual header + 1 data byte) and zero or more intermediate messages (containing a multi-part message id and up to 7 data byte) and an end message.
+
+Start → Intermediate → ... → End
+
+The last two bytes of the data seems to be some form of a CRC (#WARNING: algorithm unknown#).
+
+Start message:
+
+* Contains header + first data byte
+* Defines total message count
+
+Intermediate message:
+
+* Contains message ID + data chunk
+
+End message:
+
+* Last chunk + CRC
+
+.Multi-part Message
+====
+```
+1F5047FFx 21 0F 42 00 00 71 72 03 
+1E1047FFx 0F 00 FC 01 08 02 32 00 
+1D1047FFx 0F F7 04 E4 AB 00 00 00 
+1C9047FFx 0F 00 DF 58
+```
+
+* Header: `21 0F 42 00 00 71 72``
+* Message ID: `0F`
+* Body: `03 00 FC 01 08 02 32 00 F7 04 E4 AB 00 00 00 00`
+* CRC: `DF 58`
+====
+
+===== Start messages (Message Type 0b01)
+
+A start message always has exactly 8 bytes
+
+* Byte 1:
+** Bit 8-4: Number of messages in this multi-part message (incl. start and end message).
+** Bit 3 - 1: #Unknown.# Always 0b001 in my case.
+* Byte 2: Multi-part Message ID - identifier for related messages in multi-part message group.
+Is increased per device by one with each message 
+* Byte 3: 
+** Bit 8: #Unknown.# Probably first bit of function code
+** Bit 7-1: Function Code - see <<FunctionCodes>>
+* Byte 4: Function group (see TTE-GW-Modbus-datapoints.xlsx)
+* Byte 5: Function Number (see TTE-GW-Modbus-datapoints.xlsx) (8 bits)
+* Byte 6 + 7: Datapoint ID (see TTE-GW-Modbus-datapoints.xlsx) (16
+bit)
+* Byte 8: Value (8 bits + continuation in further messages)
+
+.Multi-part Message - Start Message
+====
+Message: `B9 1A 62 81 00 00 00 00`
+
+[width="100%",cols="19%,13%,10%,10%,5%,12%,12%,6%,6%,7%",options="header",]
+|===
+2+| Byte 1 | Byte 2 2+| Byte 3 | Byte 4 | Byte 5 | Byte 6 | Byte 7 | Byte 8
+
+2+|B9 |1A 2+|62 |81 |00 |00 |00 |00
+| Bit 8-4 | Bit 3-1 | 2+| | | 2+| |
+| 0b10111 | 0b001 | | 0b1 | 0b0000001 | | 2+| |
+
+a|
+Number of messages
+(23)
+
+| Unknown. Always 0b001. | Multi-part Message ID | ? |Function Code
+| Function Group (1) 
+
+a|
+Function Number
+(0)
+
+2+a|
+Datapoint ID
+(0)
+
+| Value (0)
+|===
+====
+
+
+===== Intermediate messages (Message Type 0b00)
+
+A continuation message has 2 - 8 bytes
+
+* Byte 1: Message ID; taken from the start message (see above)
+* Byte 2 - 8: Value
+
+.Multi-part Message - End Message  (Message Type  0b10)
+End message has the same structure as intermediate messages.
+
+[[FunctionCodes]]
+=== Function Codes
+The following function codes have been identified:
+
+[width="100%",cols="15%,60%,20%",options="header",]
+|===
+| Function Code | Meaning | Direction
+
+| 0x02 
+| Ping/Announcement (every 5s). Body always 0x01 0x02 
+| BM->HV & HV->BM
+
+| 0x08 
+| Unix time 
+|
+
+| 0x0A 
+| Same message every 10s (0x02 0 208 0 408). Related to 0x50 
+| HV-> (BM?)
+
+| 0x30
+| ?? Has something to do with changing IDs of BMs
+|
+
+| 0x31
+| ?? Has something to do with changing IDs of BMs
+|
+
+| 0x40 
+| Read addresses 
+|
+
+| 0x42 
+| Send updated value (response to 0x40) 
+|
+
+| 0x44 
+| Enable function (e.g. pause mode) 
+|
+
+| 0x46 
+| Write new value to address 
+|
+
+| 0x4C 
+| Every 10s (messages have repeating pattern; in connection with 0x50?) 
+| HV->Broadcast
+
+| 0x50 
+| Same message every 10s (0x0 208 0 408). Related to 0x0A 
+|
+
+| 0x52 
+| Every 10s (6 repeating messages; in connection with 0x42?); cf. <<special_messages_52>>
+| BM->Broadcast
+
+| 0x56 
+| Error during reading (e.g. if sensor for reading not available) 
+|
+
+| 0x61 
+| Every 7s 
+| BM->Broadcast
+
+| 0x62 
+| Unknown 
+| BM->HV
+
+| 0x74 
+| Every 5s (function group counts from 0-4; pattern repeats every 25s) 
+| BM->Broadcast
+|===
+
+
+
+
+=== Reading a value
+
+A request with function code `0x40` is sent from the interface to the Unit ID of the device.
+In addition to the Function Code, the message contains the FunctionGroup, FunctionNumber and Datapoint ID of the value to be read.
+
+The recipient responds with a broadcast (destination address 0x7FF). 
+The message has the function code `0x42` and contains FunctionGroup, FunctionNumber and Datapoint ID as identifying features plus the value.
+If an error occurs (e.g. because the sensor / value to be read is not available), the receiver responds with a message with Function Code `0x56`.
+
+.Reading
+====
+Read Request
+
+* Address: `1F E0 42 08` 
+* Message Content: `01 42 32 00 92 E2`
+
+-> Function Code: 0x40, Function Group: 0x32, Function Number: 0x00, Datapoint ID: 0x92E2
+
+Response:
+
+* Address `1F D0 47 FF`
+* Message Content: `01 42 32 00 92 E2 00 E7`
+
+-> Function Code: 0x42, Function Group: 0x32, Function Number: 0x00, Datapoint ID: 0x92E2, Value: 0x00E7
+====
+
+=== Writing a value
+
+The interface sends a request with function code `0x46` to the Unit ID of the device. 
+In addition to the Function Code, the message contains the FunctionGroup, FunctionNumber and Datapoint ID as identifying features.
+The new value is sent in the value bytes of the single or multi-part message.
+
+The receiver responds with a broadcast (destination address 0x7FF). 
+The message has the function code `0x42` and contains FunctionGroup, FunctionNumber and Datapoint ID as identifying features plus the (new) value.
+
+.Writing
+====
+Write Request:
+
+* Address: `1F E0 42 08`
+* Message Content: `01 46 32 00 96 CE`
+
+Function Code 0x46, Function Group 0x32, Function Number: 0x00, Datapoint ID: 0x96CE, New Value: 0x2D
+
+Response:
+
+* Address: `1F D0 47 FF`
+* Message Content: `01 42 32 00 96 CE 2D`
+
+Function Code 0x42, Function Group 0x32, Function Number: 0x00, Datapoint ID: 0x96CE, New Value: 0x2D
+====
+
+=== Special messages
+
+There are a number of messages that do not correspond to the "normal" pattern:
+
+[width="100%",cols="15%,25%,30%,40%",options="header"]
+|===
+| Address  | Address Structure | Data | Meaning
+
+|   E047FF | 0b11 #0x408# 0x7FF | 0x01 02                 | (every 5s; from BM)
+|   D047FF | 0b11  0x208  0x7FF | 0x01 02                 | (every 5s; from HV)
+|   D047FF | 0b11  0x208  0x7FF | 0x01 0A 02 02 08 04 08  | (every 10s)
+| 1FD047FF | 0b11  0x208  0x7FF | 0x01 4C 0F 01 00        | (every 10s)
+| 1FD047FF | 0b11  0x208  0x7FF | 0x01 50 02 08 04 08     | (every 10s)
+| 1FE047FF | 0b11 #0x408# 0x7FF | 0x01 52 06 01 00        | (every 10s)
+| 1FD047FF | 0b11  0x208  0x7FF | 0x01 61 ** FF           | (every 7s)
+| 1FE047FF | 0b11 #0x408# 0x7FF | 0x01 61 ** FF           | (every 7s)
+|===
+
+Current time in Unix time
+
+* `1FD047FF - `01 08 5F 13 76 0D``
+
+[[special_messages_52]]
+==== Sequence 0x52 -> 0x4C every 10s
+Function Codes 0x52 and 0x4C follow a sequence. 
+In particular, there is one sequence of 6 message for function code 0x52 from the BM to broadcast:
+```
+01 52 00 01 00
+01 52 01 02 00 64
+01 52 02 04 FF FF FF FF
+01 52 03 02 13 0E
+01 52 04 02 03 96
+01 52 06 01 00
+```
+
+And there is a sequence of 15 messages for function code 0x4C from HV to broadcast:
+```
+01 4C 02 02 80 00
+01 4C 0B 01 80
+01 4C 05 01 80
+01 4C 01 02 80 00
+01 4C 0A 01 80
+01 4C 04 01 80
+01 4C 13 01 00
+01 4C 11 01 00
+01 4C 08 01 80
+01 4C 0E 01 80
+01 4C 07 01 80
+01 4C 0D 01 80
+01 4C 12 01 00
+01 4C 14 01 00
+01 4C 0F 01 00
+```
+
+It actually doesn't seem to be a request reply pattern, because sometimes there is not message from the other side, but the pattern keeps just going on.
+There is a gap of 4 messages on the 0x4C side every 15 message on the 0x52 side. 
+
+
+
+==== Function Code 0x61
+Repeating sequence of message from BM to Broadcast.
+Next message from sequence is send every 7 seconds.
+
+Sequence:
+----
+01 61 00 FF
+01 61 50 FF FF
+01 61 51 FF
+01 61 52 FF
+01 61 53 FF
+01 61 54 FF FF
+01 61 55 FF
+01 61 57 FF
+01 61 58 FF
+01 61 59 FF
+01 61 5A FF
+01 61 5B FF FF FF FF
+----
+
+==== Function Code 0x62
+Repeating sequence of messages from BM to Broadcast. Message Sequence is send every 10 minutes in short succession of about 50ms.
+
+Sequence:
+----
+01 62 06 32 00 E0 92
+01 62 06 32 00 E2 92
+01 62 06 32 00 C8 96
+----
+
+==== Function Code 0x72
+Multi-part Message sequence. 
+Each message consists of two parts.
+Next message of the sequence is send every 5 seconds.
+
+Sequence:
+----
+11 * 74 00 FF 00 00 00 00 FF FF 71 E5
+11 * 74 01 FF 00 00 00 00 FF FF F0 5A
+11 * 74 02 FF 00 00 00 00 FF FF 7A 8A
+11 * 74 03 FF 00 00 00 00 FF FF FB 35
+11 * 74 04 FF 00 00 00 00 FF FF 67 3B
+----
+`*` Is replaced by the multi-part message id
+
+
+== Function Groups
+
+TODO Copy function groups from Excel
+
+=== Undocumented function groups
+
+During my tests, I was able to observe a whole series of function groups
+which are not documented in `TTE-GW-Modbus-datapoints.xlsx`:
+
+* 6
+* 7
+* 8
+* 18
+* 19
+* 61 - Weekly program?
+* 62 - Daily program?
+* 66
+
+== Datapoint ID
+
+=== Undocumented Datapoint IDs
+
+During my tests I was able to observe a whole series of datapoints, which are not documented in TTE-GW-Modbus-datapoints.xlsx.
+I was able to identify some of them:
+
+[width="100%",cols="12%,6%,11%,11%,12%,42%,6%",options="header"]
+|===
+| Unit Name | Unit ID | Function-Group | Function-Number | Datapoint-ID | Datapoint Name | Type
+
+| HV | 513-528 | 50 | 0 | 2010 | Timer Party Mode (time in hours x 10; e.g., 25 = 2.5h) | U8
+
+| HV | 513-528 | 50 | 0 | 2018 | Timer pause mode (time in hours x 10; e.g., 25 = 2.5h) | U8
+
+| HV | 513-528 | 0 | 0 | 21054 | Reset Maintenance Counter; defaults to 0x00, function code 0X46 with body 0x07 does a reset | U8
+
+| HV | 513-528 | 0 | 0 | 21058 | remaining time of maintenance counter (operating weeks); byte 3 is remaining weeks | RAW
+
+| HV | 513-528 | 0 | 0 | 20037 | maintenance counter message maintenance (operating weeks); byte 3 is remaining weeks | RAW
+|===
+
+== Data Structures
+
+=== Active Errors
+The following Datapoints contain information about active errors
+
+[width="100%",cols="20%,20%,20%,40%",options="header"]
+|===
+| Function Group | Function Number | Datapoint ID | Name
+
+| 0 | 0 | 29042 | Active Error 1 
+| 0 | 0 | 29043 | Active Error 2
+| 0 | 0 | 29044 | Active Error 3 
+| 0 | 0 | 29045 | Active Error 4 
+| 0 | 0 | 29046 | Active Error 5
+|===
+
+Error Message are a multi-part message with 18 bytes with the following structure:
+
+[width="100%",cols="20%,80%",options="header"]
+|===
+| Byte | Content
+
+| 0	 a| error_type + 
+log level, displayed as char where 3 = W, 4 = E ...
+#WARNING: This is not really correct. I've seen an 8 for a warning.#
+| 1	 | ?? - maybe high byte of error_type, but error type is defined as uint8
+| 2	 .2+| error_code (low byte, high byte)
+| 3	 
+| 4	 .2+| source (low byte, high byte)
+| 5	 
+| 6	 | function_group
+| 7	 | function_number
+| 8	 .2+a| start_time (low byte, high byte) +
+ time since midnight
+| 9	 
+| 10 .2+a| start_date (low byte, high byte) +
+ date since 01.01.1900
+| 11 
+| 12 .2+a| end_time (low byte, high byte) +
+ time since midnight
+| 13 
+| 14 .2+a| end_date (low byte, high byte) +
+ date since 01.01.1900
+| 15 
+| 16 .2+a| CRC 
+| 17
+|===
+
+.Error Message
+====
+Message: `03 00 FC 01 08 02 32 00 F7 04 E4 AB 00 00 00 00 DF 58`
+
+[width="100%",cols="20%,80%",options="header"]
+|===
+| Bytes | Meaning
+
+| 03    | Error level W
+| 00    |
+| FC 01 | error code 508
+| 08 02 | source 0x208 (Homevent)
+| 32    | function group 50
+| 00    | function number 0
+| F7 04 | 0x04F7 = 1271 minutes since midnight -> 21:11 o'clock
+| E4 AB | 0xABE4 = 44004 days since 01.01.1900 -> 23.06.2020
+| 00 00 | no end time - error still active
+| 00 00 | no end date - error still active
+| DF 58 | CRC
+|===
+====
+
+After confirming a warning, the following message was send for some time: `B4 34 00 20 40 00 00 00 72 71 01 00 00 00 00 00`
+
+[width="100%",cols="20%,80%",options="header"]
+|===
+| Bytes | Meaning
+
+| B4    | ??
+| 34    | ??
+| 00 20 | 0x0200 (8192)
+| 40 00 | source 0x0040 (64)
+| 00    | function group 0
+| 00    | function number 0
+| 72 71 | 0x7172 = ??
+| 01 00 | 0x0001 = ??
+| 00 00 | no end time - error still active
+| 00 00 | no end date - error still active
+|===
+
+== Examples
+=== Read Exhaust air temp
+
+* Device type: 513 - 528 (HV); 512 + device address
+* Device address: 8
+* Function group: 50
+* Function Number: 0
+* Datapoint ID: 37602
+
+[width="100%",cols="10%,20%,24%,24%,22%",options="header",]
+|===
+| | Unit ID (11 bit) | Function group (6 bits) | Function Number (8 bit) | Datapoint ID (16 bit)
+| DEC |512 + 8 |50 |0 |37602
+| HEX |0x208 |0x32 |0x00 |0x92 0xE2
+|===
+
+*Read Request*
+
+* Sender: |Unit ID(1032)| --> BM 8
+* Destination: |Unit ID(520)| --> HV 8
+* Function Code: `0x40`
+
+* Address: `1F E 04 208` 
+* Message Content: `01 42 32 00 92 E2`
+
+[width="100%",options="header",]
+|===
+|      | Function Code | Function Group | Function Number 2+| Datapoint ID 
+| 0x01 | 0x40 | 0x32        | 0x00       | 0x92 | 0xE2 
+| 00000001 | 01000010 | 110010 | 00000000 | 10010010 | 11100010 
+|===
+
+*Response*
+
+Address `1F D 04 7FF`
+
+* Sender: |Unit ID(520)| --> HV 8
+* Destination: Broadcast
+* Function Code: `0x42`
+
+Message Content: `01 42 32 00 92 E2 00 E7`
+
+[width="99%",cols="16%,11%,15%,14%,11%,11%,11%,11%",options="header",]
+|===
+| | Function Code |Function Group | FunctionNumber 2+| Datapoint ID  2+| Value (231)
+
+|0x01 |0x42 |0x32 |0x00 |0x92 |0xE2 |0x00 |0xE7
+|00000001 |01000010 |110010 |00000000 |10010010 |11100010 |00000000 |11100111
+|===
+
+=== Write Ventilation modulation
+
+* Device type: 513 - 528 (HV); 512 + device address
+* Device address: 8
+* Function group: 50
+* Function Number: 0
+* Datapoint ID: 38606
+
+[width="99%",cols="10%,21%,24%,24%,21%",options="header",]
+|===
+| | Unit ID (11 bit) | Function group (6 bits) | Function Number (8 bit) | Datapoint ID (16 bit)
+
+| DEC | 512 + 8 | 50 | 0 | 38606
+| HEX | 0x208 | 0x32 | 0x00 | 0x92 0xCE
+|===
+
+*Write Request:*
+
+* Sender: |Unit ID(1032)| --> BM 8
+* Destination: |Unit ID(520)| --> HV 8
+* Function Code: `0x46``
+
+* Address: `1F E 04 208`
+* Message Content: `01 46 32 00 96 CE`
+
+[width="99%",cols="16%,13%,17%,15%,13%,13%,13%",options="header",]
+|===
+|     | Function Code | Function Group | Function Number 2+| Datapoint ID |Value (45)
+|0x01 |0x46 |0x32 |0x00 |0x96 |0xCE |0x2D
+|00000001 |01000010 |00110010 |00000000 |10010110 |11001110 |00101101
+|===
+
+*Response:*
+
+Address: `1F D 04 7FF`
+
+* Sender: |Unit ID(520)| -→ HV 8
+* Destination: Broadcast
+* Function Code: `0x42`
+
+Message Content: `01 42 32 00 96 CE 2D`
+
+[width="99%",cols="16%,13%,17%,15%,13%,13%,13%",options="header",]
+|===
+|     | Function Code | Function Group | Function Number 2+| Datapoint ID |Value (45)
+|0x01 |0x42 |0x32 |0x00 |0x96 |0xCE |0x2D
+|00000001 |01000010 |00110010 |00000000 |10010110 |11001110 |00101101
+|===
+
+== Open Questions
+
+The following parts are not fully understood:
+
+- Bit 3–1 in start message (always 0b001)
+- CRC algorithm
+- Function Codes 0x30, 0x31
+- Special ping messages (E047FF, D047FF)
+- Exact Structure of Errors (especially level)
+
+== Special Function Codes
+
+=== Function Code 74
+
+The following pattern is repeated every 25s
+[width="99%",cols="20%,16%,16%,16%,16%,16%",]
+|===
+|Sender |Receiver |Function group |Function Number |Datapoint ID
+|Value
+
+|BM8 |Broadcast |0 |255 |0 |0
+
+|HV8 |Broadcast |0 |3 |58479 |242
+
+|BM8 |Broadcast |1 |255 |0 |0
+|HV8 |Broadcast |1 |180 |0 |0
+
+|BM8 |Broadcast |2 |255 |0 |0
+
+|HV8 |Broadcast |2 |0 |0 |0
+
+|BM8 |Broadcast |3 |255 |0 |0
+
+|HV8 |Broadcast |3 |0 |0 |0
+
+|BM8 |Broadcast |4 |255 |0 |0
+
+|HV8 |Broadcast |4 |0 |0 |0
+|===
+
