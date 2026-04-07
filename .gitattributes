@@ -1,0 +1,2 @@
+*.kicad_*    binary
+.vscode/extensions.json eol=lf

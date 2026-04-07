@@ -1,0 +1,26 @@
+#Generated from Visual Studio settings
+---
+BasedOnStyle: llvm
+BraceWrapping: 
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  SplitEmptyFunction: false
+  IndentBraces: false
+ReferenceAlignmentStyle: Left
+PointerAlignment: Left
+BreakBeforeBraces: Custom
+ColumnLimit: 160
+IndentWidth: 2
+NamespaceIndentation: All
+TabWidth: 2
+ContinuationIndentWidth: 4
+AllowShortFunctionsOnASingleLine: InlineOnly
+UseTab: Never
+...

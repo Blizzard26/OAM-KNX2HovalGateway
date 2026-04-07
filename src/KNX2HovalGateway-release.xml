@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<KNX xmlns="http://knx.org/xml/project/20" xmlns:op="http://github.com/OpenKNX/OpenKNXproducer">
+
+  <op:config href="KNX2HovalGateway.conf.xml" />
+  
+  <op:ETS OpenKnxId="0xFF"
+    ApplicationNumber="0x1A"
+    ApplicationVersion="%HOVAL_ApplicationVersion%"
+    ReplacesVersions="%HOVAL_ReplacesVersions%"
+    ApplicationRevision="0"
+    ProductName="KNX-Hoval Gateway"
+    OrderNumber="AL-OpenKnxHovalGateway"
+    SerialNumber="0xA71A"
+    MediumTypes="MT-0"
+    UpdateLibraryJson="true"
+  />
+
+  <op:define prefix="BASE"
+             share="../lib/OGM-Common/src/Common.share.xml"
+             KoOffset="0"
+             ModuleType="10" >
+    <op:verify File="../lib/OGM-Common/library.json" ModuleVersion="%BASE_VerifyVersion%" />
+  </op:define>
+
+  <op:define prefix="UCT"
+    share="../lib/OFM-ConfigTransfer/src/ConfigTransfer.share.xml"
+    noConfigTransfer="true"
+    ModuleType="21">
+    <op:verify File="../lib/OFM-ConfigTransfer/library.json" ModuleVersion="%UCT_VerifyVersion%" />
+  </op:define>
+
+  
+  <op:define prefix="HOV" ModuleType="20"
+    share="../lib/OFM-HovalGateway/src/HovalGateway.share.xml"
+    KoSingleOffset="100">
+    <op:verify File="../lib/OFM-HovalGateway/library.json" ModuleVersion="%HOVAL_VerifyVersion%" />
+  </op:define>
+
+  <!-- 
+  3 KOs / Channel
+  => 20*3=60 KOs
+  => [1000,60[
+  -->
+  <op:define prefix="LOG"
+    share="../lib/OFM-LogicModule/src/Logikmodul.share.xml"
+    template="../lib/OFM-LogicModule/src/Logikmodul.templ.xml"
+    NumChannels="20"
+    KoOffset="1000"
+    ModuleType="10">
+    <op:verify File="../lib/OFM-LogicModule/library.json" ModuleVersion="%LOG_VerifyVersion%" />
+  </op:define>
+
+  <generate />
+</KNX>

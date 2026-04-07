@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer"
+  xmlns="http://knx.org/xml/project/20" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
+
+
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram>
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="%AID%_PT-seconds0.2D60" Name="seconds0-60">
+                <TypeNumber Type="unsignedInt" minInclusive="0" maxInclusive="60" SizeInBit="6" />
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-boolean" Name="boolean">
+                <TypeRestriction Base="Value" SizeInBit="1">
+                  <Enumeration Text="Nein" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Ja" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-second0.2D60000" Name="second0-60000">
+                <TypeNumber Type="unsignedInt" minInclusive="0" maxInclusive="60000" SizeInBit="16" />
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-uint8" Name="uint8">
+                <TypeNumber Type="unsignedInt" minInclusive="0" maxInclusive="255" SizeInBit="8" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Union SizeInBit="64">
+                <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
+                <Parameter Id="%AID%_UP-%TT%00001" Name="gateway_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Typ (wird verwendet für Anfragen an die Lüftung; Typisch 64)" Value="64" />
+                <Parameter Id="%AID%_UP-%TT%00003" Name="gateway_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Id (wird verwendet für Anfragen an die Lüftung; Typisch 8 oder 9)" Value="9" />
+                <!-- 48 Bits free -->
+              </Union>
+              <Union SizeInBit="128">
+                <Memory CodeSegment="%MID%" Offset="8" BitOffset="0" />
+                <!-- Device -->
+                <Parameter Id="%AID%_UP-%TT%00101" Name="homevent_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="  Typ (HomeVent: 32)" Value="32" />
+                <Parameter Id="%AID%_UP-%TT%00102" Name="homevent_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="  Addresse (Typisch 8)" Value="8" />
+                <!-- Active Send Interval-->
+                <Parameter Id="%AID%_UP-%TT%00103" Name="homevent_sendActive_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%00104" Name="homevent_sendActive_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="2" BitOffset="2" Text="Zeit" Value="5" />
+                <!-- 1 Bytes free -->
+                <!-- Available Options -->
+                <Parameter Id="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="0" Text="  VOC Sensor vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00112" Name="general_rpm2_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="1" Text="  RPM2 Present" Value="0" />
+                <!-- 6 bit free -->
+                
+                <!-- Settings -->
+                <!-- Request Interval -->
+                <Parameter Id="%AID%_UP-%TT%00121" Name="homevent_pollingInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="5" BitOffset="0" Text="Zeitbasis" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00122" Name="homevent_pollingInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="5" BitOffset="2" Text="Zeit" Value="60" />
+                
+                <Parameter Id="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" ParameterType="%AID%_PT-boolean" Offset="6" BitOffset="0" Text="  Jede Änderung senden" Value="0" />
+                <!-- 7 Bits free -->
+                <!-- Send Interval-->
+                <Parameter Id="%AID%_UP-%TT%00131" Name="homevent_sendInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="7" BitOffset="0" Text="Zeitbasis" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%00132" Name="homevent_sendInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="7" BitOffset="2" Text="Zeit" Value="5" />
+                <!-- 2 Bytes free -->
+                <!-- Erweitert -->
+                <Parameter Id="%AID%_UP-%TT%00141" Name="homevent_expert_mode" ParameterType="%AID%_PT-boolean" Offset="10" BitOffset="0" Text="  Expertenmodus" Value="0" />
+                <!-- 7 bits free-->
+                <!-- 5 bytes free-->
+              </Union>
+              <Union SizeInBit="512">
+                <Memory CodeSegment="%MID%" Offset="16" BitOffset="0" />
+                <!-- FFU -->
+                <Parameter Id="%AID%_UP-%TT%00201" Name="dummy" ParameterType="%AID%_PT-boolean" Offset="0" BitOffset="0" Text="Dummy" Value="0" />
+              </Union>
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="%AID%_UP-%TT%00001_R-%TT%0000101" RefId="%AID%_UP-%TT%00001" Name="gateway_device_type" />
+              <ParameterRef Id="%AID%_UP-%TT%00003_R-%TT%0000301" RefId="%AID%_UP-%TT%00003" Name="gateway_device_id" />
+              <ParameterRef Id="%AID%_UP-%TT%00103_R-%TT%0010301" RefId="%AID%_UP-%TT%00103" Name="homevent_sendActive_DelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00104_R-%TT%0010401" RefId="%AID%_UP-%TT%00104" Name="homevent_sendActive_DelayTime" />
+              
+
+              <ParameterRef Id="%AID%_UP-%TT%00101_R-%TT%0010101" RefId="%AID%_UP-%TT%00101" Name="homevent_device_type" />
+              <ParameterRef Id="%AID%_UP-%TT%00102_R-%TT%0010201" RefId="%AID%_UP-%TT%00102" Name="homevent_device_id" />
+              <ParameterRef Id="%AID%_UP-%TT%00121_R-%TT%0012101" RefId="%AID%_UP-%TT%00121" Name="homevent_pollingInterval_DelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00122_R-%TT%0012201" RefId="%AID%_UP-%TT%00122" Name="homevent_pollingInterval_DelayTime" />
+              <ParameterRef Id="%AID%_UP-%TT%00123_R-%TT%0012301" RefId="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" />
+
+              <ParameterRef Id="%AID%_UP-%TT%00111_R-%TT%0011101" RefId="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" />
+              <ParameterRef Id="%AID%_UP-%TT%00112_R-%TT%0011201" RefId="%AID%_UP-%TT%00112" Name="general-rpm2_present" />
+              
+              <ParameterRef Id="%AID%_UP-%TT%00141_R-%TT%0014101" RefId="%AID%_UP-%TT%00141" Name="homevent_expert_mode" />
+
+              <ParameterRef Id="%AID%_UP-%TT%00131_R-%TT%0013101" RefId="%AID%_UP-%TT%00131" Name="homevent_sendInterval_DelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00132_R-%TT%0013201" RefId="%AID%_UP-%TT%00132" Name="homevent_sendInterval_DelayTime" />
+            </ParameterRefs>
+            <ComObjectTable>
+              <ComObject Id="%AID%_O-%TT%00001" Name="global_online" Text="Allgemein" FunctionText="Online" Number="0" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00009" Name="general_maintenance_remaining" Text="Allgemein" Number="9" FunctionText="Restlaufzeit Wartungszähler" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-7" />
+              <!-- operating-mode -->
+              <ComObject Id="%AID%_O-%TT%00010" Name="vent_operating_mode_standby" Text="Betriebswahl Lüftung" Number="10" FunctionText="Standby" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00011" Name="vent_operating_mode_week1" Text="Betriebswahl Lüftung" Number="11" FunctionText="Woche 1" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00013" Name="vent_operating_mode_week2" Text="Betriebswahl Lüftung" Number="12" FunctionText="Woche 2" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00014" Name="vent_operating_mode_constant" Text="Betriebswahl Lüftung" Number="13" FunctionText="Konstantbetrieb" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00015" Name="vent_operating_mode_economy" Text="Betriebswahl Lüftung" Number="14" FunctionText="Sparbetrieb" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00019" Name="vent_operating_mode" Text="Betriebswahl Lüftung" Number="19" FunctionText="Aktueller Wert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+              <!-- AirQualityControl -->
+              <ComObject Id="%AID%_O-%TT%00020" Name="vent_airqualitycontrol_standby" Text="Lüftungsregelung" Number="20" FunctionText="Lüftungsregelung aus" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00021" Name="vent_airqualitycontrol_normal" Text="Lüftungsregelung" Number="21" FunctionText="Normaler Lüftungsbetrieb" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00022" Name="vent_airqualitycontrol_voc" Text="Lüftungsregelung" Number="22" FunctionText="VOC Modus aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00023" Name="vent_airqualitycontrol_humidity" Text="Lüftungsregelung" Number="23" FunctionText="Feuchtigkeitsmodus aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00024" Name="vent_airqualitycontrol_antifreeze" Text="Lüftungsregelung" Number="24" FunctionText="Frostschutz aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00025" Name="vent_airqualitycontrol_coolvent" Text="Lüftungsregelung" Number="25" FunctionText="CoolVet aktiv" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00026" Name="vent_airqualitycontrol_error" Text="Lüftungsregelung" Number="26" FunctionText="Fehlerzustand" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
+              <ComObject Id="%AID%_O-%TT%00029" Name="vent_airqualitycontrol" Text="Lüftungsregelung" Number="29" FunctionText="Aktueller Wert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+              <!-- Ventilation Control-->
+              <ComObject Id="%AID%_O-%TT%00039" Name="vent_ventilation_control_status" Text="Lüftung" Number="39" FunctionText="Status Lüftungsregelung" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+              <!-- Modulation -->
+              <ComObject Id="%AID%_O-%TT%00040" Name="vent_modulation" Text="Lüftungsmodulation" Number="40" FunctionText="Aktueller Wert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00041" Name="vent_normal_modulation" Text="Lüftungsmodulation" Number="41" FunctionText="Normal" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00042" Name="vent_economy_modulation" Text="Lüftungsmodulation" Number="42" FunctionText="Spar" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+
+              <!-- Party/Pause -->
+              <ComObject Id="%AID%_O-%TT%00050" Name="vent_party_mode" Text="Party/Pause" Number="50" FunctionText="Party Modus" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-6" />
+              <ComObject Id="%AID%_O-%TT%00051" Name="vent_pause_mode" Text="Party/Pause" Number="51" FunctionText="Pause Modus" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-6" />
+              <ComObject Id="%AID%_O-%TT%00052" Name="vent_party_pause_value" Text="Party/Pause" Number="52" FunctionText="Aktueller Wert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              
+              <!-- Humidity -->
+              <ComObject Id="%AID%_O-%TT%00060" Name="vent_humidity_setpoint" Text="Luftfeuchtigkeit" Number="60" FunctionText="Sollwert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <!-- 61: Außenluft -->
+              <ComObject Id="%AID%_O-%TT%00062" Name="vent_humidity_exhaust" Text="Luftfeuchtigkeit" Number="62" FunctionText="Abluft" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <!-- Temperature -->
+              <!-- 63: Sollwert -->
+              <ComObject Id="%AID%_O-%TT%00064" Name="vent_temperature_outdoor" Text="Temperatur" Number="64" FunctionText="Außenluft" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-1" />
+              <ComObject Id="%AID%_O-%TT%00065" Name="vent_temperature_exhaust" Text="Temperatur" Number="65" FunctionText="Abluft" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-9-1" />
+              <!-- VOC -->
+              <!-- 66: Sollwert -->
+              <ComObject Id="%AID%_O-%TT%00067" Name="vent_voc_outdoor" Text="VOC" Number="67" FunctionText="Außenluft" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00068" Name="vent_voc_exhaust" Text="VOC" Number="68" FunctionText="Abluft" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <!-- 69: Unused -->
+
+              <!-- Ventilator -->
+              <ComObject Id="%AID%_O-%TT%00070" Name="vent_ventilation_exhaust" Text="Ventilator" Number="70" FunctionText="Abluft Soll" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00071" Name="general_ventilator_outdoor_pwm" Text="Ventilator" Number="71" FunctionText="Zuluft PWM" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00072" Name="general_ventilator_exhaust_pwm" Text="Ventilator " Number="72" FunctionText="Abluft PWM" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00073" Name="general_rpm_rotor1" Text="Ventilator" Number="73" FunctionText="RPM Rotor 1" ObjectSize="4 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-14-34" />
+              <ComObject Id="%AID%_O-%TT%00074" Name="general_rpm_rotor2" Text="Ventilator" Number="74" FunctionText="RPM Rotor 2" ObjectSize="4 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-14-34" />
+              
+              <!-- Errors -->
+              <ComObject Id="%AID%_O-%TT%00090" Name="general_active_error" Text="Allgemein" Number="90" FunctionText="Aktiver Fehler/Warnung" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-5" />
+              <ComObject Id="%AID%_O-%TT%00091" Name="general_active_error_1" Text="Allgemein" Number="91" FunctionText="Aktiver Fehler 1" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
+              <ComObject Id="%AID%_O-%TT%00092" Name="general_active_error_2" Text="Allgemein" Number="92" FunctionText="Aktiver Fehler 2" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
+              <ComObject Id="%AID%_O-%TT%00093" Name="general_active_error_3" Text="Allgemein" Number="93" FunctionText="Aktiver Fehler 3" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
+              <ComObject Id="%AID%_O-%TT%00094" Name="general_active_error_4" Text="Allgemein" Number="94" FunctionText="Aktiver Fehler 4" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
+              <ComObject Id="%AID%_O-%TT%00095" Name="general_active_error_5" Text="Allgemein" Number="95" FunctionText="Aktiver Fehler 5" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
+
+              <ComObject Id="%AID%_O-%TT%00096" Name="general_active_error_error" Text="Allgemein" Number="96" FunctionText="Aktiver Fehler" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+              <ComObject Id="%AID%_O-%TT%00097" Name="general_active_error_warning" Text="Allgemein" Number="97" FunctionText="Aktive Warnung" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+            </ComObjectTable>
+            <ComObjectRefs>
+              <ComObjectRef Id="%AID%_O-%TT%00001_R-%TT%0000101" RefId="%AID%_O-%TT%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%00009_R-%TT%0000901" RefId="%AID%_O-%TT%00009" />
+              <!-- operating mode -->
+              <ComObjectRef Id="%AID%_O-%TT%00010_R-%TT%0001001" RefId="%AID%_O-%TT%00010" />
+              <ComObjectRef Id="%AID%_O-%TT%00011_R-%TT%0001101" RefId="%AID%_O-%TT%00011" />
+              <ComObjectRef Id="%AID%_O-%TT%00013_R-%TT%0001301" RefId="%AID%_O-%TT%00013" />
+              <ComObjectRef Id="%AID%_O-%TT%00014_R-%TT%0001401" RefId="%AID%_O-%TT%00014" />
+              <ComObjectRef Id="%AID%_O-%TT%00015_R-%TT%0001501" RefId="%AID%_O-%TT%00015" />
+              <ComObjectRef Id="%AID%_O-%TT%00019_R-%TT%0001901" RefId="%AID%_O-%TT%00019" />
+              <!-- AirQualityControl -->
+              <ComObjectRef Id="%AID%_O-%TT%00020_R-%TT%0002001" RefId="%AID%_O-%TT%00020" />
+              <ComObjectRef Id="%AID%_O-%TT%00021_R-%TT%0002101" RefId="%AID%_O-%TT%00021" />
+              <ComObjectRef Id="%AID%_O-%TT%00022_R-%TT%0002201" RefId="%AID%_O-%TT%00022" />
+              <ComObjectRef Id="%AID%_O-%TT%00023_R-%TT%0002301" RefId="%AID%_O-%TT%00023" />
+              <ComObjectRef Id="%AID%_O-%TT%00024_R-%TT%0002401" RefId="%AID%_O-%TT%00024" />
+              <ComObjectRef Id="%AID%_O-%TT%00025_R-%TT%0002501" RefId="%AID%_O-%TT%00025" />
+              <ComObjectRef Id="%AID%_O-%TT%00026_R-%TT%0002601" RefId="%AID%_O-%TT%00026" />
+              <ComObjectRef Id="%AID%_O-%TT%00029_R-%TT%0002901" RefId="%AID%_O-%TT%00029" />
+              <!-- Ventilation Control-->
+              <ComObjectRef Id="%AID%_O-%TT%00039_R-%TT%0003901" RefId="%AID%_O-%TT%00039" />
+              <!-- Modulation -->
+              <ComObjectRef Id="%AID%_O-%TT%00040_R-%TT%0004001" RefId="%AID%_O-%TT%00040" />
+              <ComObjectRef Id="%AID%_O-%TT%00041_R-%TT%0004101" RefId="%AID%_O-%TT%00041" />
+              <ComObjectRef Id="%AID%_O-%TT%00042_R-%TT%0004201" RefId="%AID%_O-%TT%00042" />
+              <!-- Party/Pause -->
+              <ComObjectRef Id="%AID%_O-%TT%00050_R-%TT%0005001" RefId="%AID%_O-%TT%00050" />
+              <ComObjectRef Id="%AID%_O-%TT%00051_R-%TT%0005101" RefId="%AID%_O-%TT%00051" />
+              <ComObjectRef Id="%AID%_O-%TT%00052_R-%TT%0005201" RefId="%AID%_O-%TT%00052" />
+              <!-- Humidity -->
+              <ComObjectRef Id="%AID%_O-%TT%00060_R-%TT%0006001" RefId="%AID%_O-%TT%00060" />
+              <ComObjectRef Id="%AID%_O-%TT%00062_R-%TT%0006201" RefId="%AID%_O-%TT%00062" />
+              <!-- Temperature -->
+              <ComObjectRef Id="%AID%_O-%TT%00064_R-%TT%0006401" RefId="%AID%_O-%TT%00064" />
+              <ComObjectRef Id="%AID%_O-%TT%00065_R-%TT%0006501" RefId="%AID%_O-%TT%00065" />
+              <!-- VOC -->
+              <ComObjectRef Id="%AID%_O-%TT%00067_R-%TT%0006701" RefId="%AID%_O-%TT%00067" />
+              <ComObjectRef Id="%AID%_O-%TT%00068_R-%TT%0006801" RefId="%AID%_O-%TT%00068" />
+              <!-- Ventilator -->
+              <ComObjectRef Id="%AID%_O-%TT%00070_R-%TT%0007001" RefId="%AID%_O-%TT%00070" />
+              <ComObjectRef Id="%AID%_O-%TT%00072_R-%TT%0007201" RefId="%AID%_O-%TT%00072" />
+              <ComObjectRef Id="%AID%_O-%TT%00071_R-%TT%0007101" RefId="%AID%_O-%TT%00071" />
+              <ComObjectRef Id="%AID%_O-%TT%00073_R-%TT%0007301" RefId="%AID%_O-%TT%00073" />
+              <ComObjectRef Id="%AID%_O-%TT%00074_R-%TT%0007401" RefId="%AID%_O-%TT%00074" />
+              <!-- Errors -->
+              <ComObjectRef Id="%AID%_O-%TT%00090_R-%TT%0009001" RefId="%AID%_O-%TT%00090" />
+              <ComObjectRef Id="%AID%_O-%TT%00091_R-%TT%0009101" RefId="%AID%_O-%TT%00091" />
+              <ComObjectRef Id="%AID%_O-%TT%00092_R-%TT%0009201" RefId="%AID%_O-%TT%00092" />
+              <ComObjectRef Id="%AID%_O-%TT%00093_R-%TT%0009301" RefId="%AID%_O-%TT%00093" />
+              <ComObjectRef Id="%AID%_O-%TT%00094_R-%TT%0009401" RefId="%AID%_O-%TT%00094" />
+              <ComObjectRef Id="%AID%_O-%TT%00095_R-%TT%0009501" RefId="%AID%_O-%TT%00095" />
+
+              <ComObjectRef Id="%AID%_O-%TT%00096_R-%TT%0009601" RefId="%AID%_O-%TT%00096" />
+              <ComObjectRef Id="%AID%_O-%TT%00097_R-%TT%0009701" RefId="%AID%_O-%TT%00097" />
+            </ComObjectRefs>
+          </Static>
+          <Dynamic>
+            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Text="Hoval" Name="Hoval">
+              <ParameterBlock Id="%AID%_PB-nnn" Text="Gateway" Name="Gateway">
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Allgemein" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00003_R-%TT%0000301" />
+              </ParameterBlock>
+              <ParameterBlock Id="%AID%_PB-nnn" Text="HomeVent" Name="HomeVent">
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Gerät" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00102_R-%TT%0010201" />
+
+                <ParameterBlock Id="%AID%_PB-nnn" Name="SendActiveInterval" Inline="true" Layout="Grid">
+                  <Rows>
+                    <Row Id="%AID%_PB-nnn_R-1" Name="Row1" />
+                  </Rows>
+                  <Columns>
+                    <Column Id="%AID%_PB-nnn_C-1" Name="Col1" Width="45%" />
+                    <Column Id="%AID%_PB-nnn_C-2" Name="Col2" Width="15%" />
+                    <Column Id="%AID%_PB-nnn_C-3" Name="Col3" Width="20%" />
+                  </Columns>
+                  <ParameterSeparator Id="%AID%_PS-nnn" Text="  Verbindung aktiv senden alle" Cell="1,1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00104_R-%TT%0010401" Cell="1,2" IndentLevel="1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00103_R-%TT%0010301" Cell="1,3" IndentLevel="1" />
+                </ParameterBlock>
+                
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Optionen" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00111_R-%TT%0011101" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00112_R-%TT%0011201" />
+
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Einstellungen" UIHint="Headline" />
+                <ParameterBlock Id="%AID%_PB-nnn" Name="GlobalRequestInterval" Inline="true" Layout="Grid">
+                  <Rows>
+                    <Row Id="%AID%_PB-nnn_R-1" Name="Row1" />
+                  </Rows>
+                  <Columns>
+                    <Column Id="%AID%_PB-nnn_C-1" Name="Col1" Width="45%" />
+                    <Column Id="%AID%_PB-nnn_C-2" Name="Col2" Width="15%" />
+                    <Column Id="%AID%_PB-nnn_C-3" Name="Col3" Width="20%" />
+                  </Columns>
+                  <ParameterSeparator Id="%AID%_PS-nnn" Text="  Abfrageinterval&#10;  (0 = nicht abfragen; es wird nur auf Änderungsmeldungen gehört)" Cell="1,1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00122_R-%TT%0012201" Cell="1,2" IndentLevel="1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00121_R-%TT%0012101" Cell="1,3" IndentLevel="1" />
+                </ParameterBlock>
+
+                <ParameterRefRef RefId="%AID%_UP-%TT%00123_R-%TT%0012301" />
+                <ParameterBlock Id="%AID%_PB-nnn" Name="GlobalSendInterval" Inline="true" Layout="Grid">
+                  <Rows>
+                    <Row Id="%AID%_PB-nnn_R-1" Name="Row1" />
+                  </Rows>
+                  <Columns>
+                    <Column Id="%AID%_PB-nnn_C-1" Name="Col1" Width="45%" />
+                    <Column Id="%AID%_PB-nnn_C-2" Name="Col2" Width="15%" />
+                    <Column Id="%AID%_PB-nnn_C-3" Name="Col3" Width="20%" />
+                  </Columns>
+                  <ParameterSeparator Id="%AID%_PS-nnn" Text="  zyklisch senden&#10;  (0 = nicht zyklisch senden)" Cell="1,1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00132_R-%TT%0013201" Cell="1,2" IndentLevel="1" />
+                  <ParameterRefRef RefId="%AID%_UP-%TT%00131_R-%TT%0013101" Cell="1,3" IndentLevel="1" />
+                </ParameterBlock>
+
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweitert" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00141_R-%TT%0014101" />
+                
+
+                <!-- Online -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00001_R-%TT%0000101" />
+                <!-- Maintenance Remaining -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00009_R-%TT%0000901" />
+
+                <!-- operating-mode -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00010_R-%TT%0001001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00011_R-%TT%0001101" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00013_R-%TT%0001301" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00014_R-%TT%0001401" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00015_R-%TT%0001501" />
+                <choose ParamRefId="%AID%_UP-%TT%00141_R-%TT%0014101">
+                  <when test="=1">
+                    <!-- ExportMode: Raw-->
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00019_R-%TT%0001901" />
+                  </when>
+                </choose>
+
+                <!-- AirQualityControl-->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00020_R-%TT%0002001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00021_R-%TT%0002101" />
+                <choose ParamRefId="%AID%_UP-%TT%00111_R-%TT%0011101">
+                  <when test="=1">
+                    <!-- Voc -->
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00022_R-%TT%0002201" />
+                  </when>
+                </choose>
+                <ComObjectRefRef RefId="%AID%_O-%TT%00023_R-%TT%0002301" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00024_R-%TT%0002401" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00025_R-%TT%0002501" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00026_R-%TT%0002601" />
+                <choose ParamRefId="%AID%_UP-%TT%00141_R-%TT%0014101">
+                  <when test="=1">
+                    <!-- ExportMode: Raw-->
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00029_R-%TT%0002901" />
+                  </when>
+                </choose>
+
+                <!-- Ventilation Control-->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00039_R-%TT%0003901" />
+
+                <!-- Modulation -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00040_R-%TT%0004001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00041_R-%TT%0004101" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00042_R-%TT%0004201" />
+                
+                <!-- Party/Pause -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00050_R-%TT%0005001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00051_R-%TT%0005101" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00052_R-%TT%0005201" />
+
+                <!-- Humidity -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00060_R-%TT%0006001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00062_R-%TT%0006201" />
+                <!-- Temperature -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00064_R-%TT%0006401" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00065_R-%TT%0006501" />
+                <!-- VOC -->
+                <choose ParamRefId="%AID%_UP-%TT%00111_R-%TT%0011101">
+                  <when test="=1">
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00067_R-%TT%0006701" />
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00068_R-%TT%0006801" />
+                  </when>
+                </choose>
+
+                <!-- Ventilator -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00070_R-%TT%0007001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00072_R-%TT%0007201" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00071_R-%TT%0007101" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00073_R-%TT%0007301" />
+                <!-- general-rpm2-present -->
+                <choose ParamRefId="%AID%_UP-%TT%00112_R-%TT%0011201">
+                  <when test="=1">
+                    <ComObjectRefRef RefId="%AID%_O-%TT%00074_R-%TT%0007401" />
+                  </when>
+                </choose>
+
+                <!-- Errors -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00090_R-%TT%0009001" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00091_R-%TT%0009101" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00092_R-%TT%0009201" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00093_R-%TT%0009301" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00094_R-%TT%0009401" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00095_R-%TT%0009501" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00096_R-%TT%0009601" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00097_R-%TT%0009701" />
+              </ParameterBlock>
+            </Channel>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

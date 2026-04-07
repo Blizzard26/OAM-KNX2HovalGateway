@@ -1,0 +1,15 @@
+[submodule "lib/knx"]
+	path = lib/knx
+	url = https://github.com/OpenKNX/knx.git
+[submodule "lib/OGM-Common"]
+	path = lib/OGM-Common
+	url = https://github.com/OpenKNX/OGM-Common.git
+[submodule "lib/OFM-LogicModule"]
+	path = lib/OFM-LogicModule
+	url = https://github.com/OpenKNX/OFM-LogicModule.git
+[submodule "lib/OFM-ConfigTransfer"]
+	path = lib/OFM-ConfigTransfer
+	url = https://github.com/OpenKNX/OFM-ConfigTransfer
+[submodule "lib/OFM-FileTransferModule"]
+	path = lib/OFM-FileTransferModule
+	url = https://github.com/OpenKNX/OFM-FileTransferModule.git
