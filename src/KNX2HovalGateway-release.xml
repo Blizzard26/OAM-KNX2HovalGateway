@@ -6,8 +6,8 @@
   
   <op:ETS OpenKnxId="0xFF"
     ApplicationNumber="0x1A"
-    ApplicationVersion="%HOVAL_ApplicationVersion%"
-    ReplacesVersions="%HOVAL_ReplacesVersions%"
+    ApplicationVersion="%HOV_ApplicationVersion%"
+    ReplacesVersions="%HOV_ReplacesVersions%"
     ApplicationRevision="0"
     ProductName="KNX-Hoval Gateway"
     OrderNumber="AL-OpenKnxHovalGateway"
@@ -34,7 +34,7 @@
   <op:define prefix="HOV" ModuleType="20"
     share="../lib/OFM-HovalGateway/src/HovalGateway.share.xml"
     KoSingleOffset="100">
-    <op:verify File="../lib/OFM-HovalGateway/library.json" ModuleVersion="%HOVAL_VerifyVersion%" />
+    <op:verify File="../lib/OFM-HovalGateway/library.json" ModuleVersion="%HOV_VerifyVersion%" />
   </op:define>
 
   <!-- 
