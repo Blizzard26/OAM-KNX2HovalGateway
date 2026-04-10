@@ -30,8 +30,6 @@
 #define HOVAL_ACTIVE_PIN_ACTIVE_ON HIGH
 #endif
 
-// #define DEBUG_LOG_TIMING
-
 void Knx2HovalGatewayModule::setup(bool configured)
 {
 
@@ -90,9 +88,6 @@ void Knx2HovalGatewayModule::loop(bool configured)
     return;
   }
 
-#if defined(OPENKNX_DEBUG) && defined(DEBUG_LOG_TIMING)
-  uint32_t loopStartTime = micros();
-#endif
   loopCount++;
 
   // Note only one task is evaluated every call to make sure method returns fast enough. This is achieved using short circuit behavior of || operator.
@@ -109,33 +104,6 @@ void Knx2HovalGatewayModule::loop(bool configured)
   // Check for any necessary update requests
   busy = busy || hoval2KNX.task();
 
-#if defined(OPENKNX_DEBUG) && defined(DEBUG_LOG_TIMING)
-  if (busy)
-  {
-    uint32_t loopDuration = calculateTimeDifference(loopStartTime, micros());
-    if (loopDuration < minLoopDuration)
-    {
-      minLoopDuration = loopDuration;
-    }
-    if (loopDuration > maxLoopDuration)
-    {
-      maxLoopDuration = loopDuration;
-    }
-    avgLoopDurationSum += loopDuration;
-
-    if (loopCount >= 60000)
-    {
-      if (maxLoopDuration > 1000)
-      {
-        logDebugP("Loop duration: Avg: %u us; Min: %u us; Max: %u us", (avgLoopDurationSum / loopCount), minLoopDuration, maxLoopDuration);
-      }
-      loopCount = 0;
-      minLoopDuration = UINT32_MAX;
-      maxLoopDuration = 0;
-      avgLoopDurationSum = 0;
-    }
-  }
-#endif
   if (loopCount >= 60000)
   {
     loopCount = 0;
