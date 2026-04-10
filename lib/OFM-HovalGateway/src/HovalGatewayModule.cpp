@@ -77,11 +77,8 @@ inline static constexpr const uint32_t calculateTimeDifference(const uint32_t la
 }
 
 // Needs to be called at least every 400us
-void Knx2HovalGatewayModule::loop(bool configured)
+void Knx2HovalGatewayModule::loop()
 {
-  if (!configured)
-    return;
-
   // Check if Hoval is Powered / Active
   if (!checkActive())
   {

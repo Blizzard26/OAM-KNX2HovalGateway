@@ -54,7 +54,7 @@ public:
   Knx2HovalGatewayModule() : CAN(SPI_CS_PIN), hoval(&CAN, CAN_INT_PIN), hoval2KNX(&hoval) { hoval.setHovalEventHandler(&hoval2KNX); }
 
   void setup(bool configured) override;
-  void loop(bool configured) override;
+  void loop() override;
 
   void processAfterStartupDelay() override;
 
