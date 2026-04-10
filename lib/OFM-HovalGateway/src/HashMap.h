@@ -1,5 +1,4 @@
-#ifndef _HASH_MAP_H
-#define _HASH_MAP_H
+#pragma once
 
 #include <stddef.h>
 
@@ -157,5 +156,3 @@ public:
     }
   }
 };
-
-#endif // _HASH_MAP_H

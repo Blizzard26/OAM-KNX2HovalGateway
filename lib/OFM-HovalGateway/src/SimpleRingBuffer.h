@@ -1,5 +1,4 @@
-#ifndef _RING_BUFFER_H
-#define _RING_BUFFER_H
+#pragma once
 
 #include <stdint.h>
 
@@ -100,5 +99,3 @@ public:
 
   inline bool available() { return readPosition != insertPosition; }
 };
-
-#endif

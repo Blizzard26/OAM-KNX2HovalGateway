@@ -1,5 +1,4 @@
-#ifndef _HOVAL_MESSAGE_H
-#define _HOVAL_MESSAGE_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -168,5 +167,3 @@ private:
 
   char mapErrorType(uint8_t errorType) const;
 };
-
-#endif
