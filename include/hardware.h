@@ -1,6 +1,5 @@
 // Hier stehen alle Hardwarespezifischen defines
-#ifndef _HOVAL2KNXGATEWAY_HARDWARE_H
-#define _HOVAL2KNXGATEWAY_HARDWARE_H
+#pragma once
 
 #if defined(ARDUINO_SEEED_XIAO_RP2040)
 // Arduino XIAO RP20240
@@ -38,6 +37,4 @@
 
 #else
 #error Unsupported board
-#endif
-
 #endif

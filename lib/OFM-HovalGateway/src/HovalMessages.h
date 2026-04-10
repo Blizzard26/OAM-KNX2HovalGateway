@@ -1,5 +1,4 @@
-#ifndef _HOVAL_MESSAGES_H
-#define _HOVAL_MESSAGES_H
+#pragma once
 
 #include "HovalMessage.h"
 #include "HovalProtocolDecoder.h"
@@ -279,5 +278,3 @@ const HovalMessageType *HovalProtocolHandler::messageFilter[] = {
   };
 // clang-format on
 const uint8_t HovalProtocolHandler::numberOfMessageFilters = sizeof(messageFilter) / sizeof(HovalMessageType*);
-
-#endif // _HOVAL_MESSAGES_H

@@ -1,5 +1,4 @@
-#ifndef _HOVAL2KNXMAPPER_H
-#define _HOVAL2KNXMAPPER_H
+#pragma once
 
 #include <Arduino.h>
 #include <stdint.h>
@@ -105,4 +104,3 @@ public:
 
   void hovalEvent(HovalMessage* message);
 };
-#endif

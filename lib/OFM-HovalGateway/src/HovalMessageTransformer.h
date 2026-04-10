@@ -1,5 +1,4 @@
-#ifndef _HOVAL_MESSAGE_TRANSFORMER_H
-#define _HOVAL_MESSAGE_TRANSFORMER_H
+#pragma once
 
 ////////////////////////
 // Decoder configuration
@@ -253,5 +252,3 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
     // Welcome
 };
 const uint8_t Hoval2KNXMapper::numberOfMessageTransformers = sizeof(messageTransformers) / sizeof(HovalMessageTransformer);
-
-#endif

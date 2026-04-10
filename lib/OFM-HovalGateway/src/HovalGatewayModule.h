@@ -1,5 +1,4 @@
-#ifndef _KNX2HOVAL_GATEWAY_MODULE
-#define _KNX2HOVAL_GATEWAY_MODULE
+#pragma once
 
 #include "Arduino.h"
 #include "OpenKNX.h"
@@ -69,5 +68,3 @@ public:
 
   void showInformations() override;
 };
-
-#endif

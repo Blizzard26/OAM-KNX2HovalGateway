@@ -1,5 +1,4 @@
-#ifndef _HOVALPROTOCOLDECODER_H
-#define _HOVALPROTOCOLDECODER_H
+#pragma once
 
 #include <mcp_can.h>
 #include <stdint.h>
@@ -141,5 +140,3 @@ public:
   void setLogMessage(bool enabled) { logMessage = enabled; }
   void setLogMessageData(bool enabled) { logMessageData = enabled; }
 };
-
-#endif
