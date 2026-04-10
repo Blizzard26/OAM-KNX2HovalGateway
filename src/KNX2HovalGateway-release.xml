@@ -4,16 +4,17 @@
 
   <op:config href="KNX2HovalGateway.conf.xml" />
   
-  <op:ETS OpenKnxId="0xFF"
+  <op:ETS 
+    ProductName="KNX-Hoval Gateway"
+    OpenKnxId="0xFF"
     ApplicationNumber="0x1A"
     ApplicationVersion="%HOV_ApplicationVersion%"
     ReplacesVersions="%HOV_ReplacesVersions%"
     ApplicationRevision="0"
-    ProductName="KNX-Hoval Gateway"
+    ApplicationName="AL-OpenKnxHovalGateway"
     OrderNumber="AL-OpenKnxHovalGateway"
     SerialNumber="0xA71A"
     MediumTypes="MT-0"
-    UpdateLibraryJson="true"
   />
 
   <op:define prefix="BASE"

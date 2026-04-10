@@ -20,7 +20,7 @@ void setup()
   // Start debug serial with 115200 bauds
   Serial.begin(115200);
 
-  openknx.init(firmwareRevision);
+  openknx.init();
 
   openknx.addModule(1, hovalGatewayModule);
   openknx.addModule(3, openknxLogic);
