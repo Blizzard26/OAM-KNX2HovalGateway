@@ -64,7 +64,7 @@
                 <!-- 5 bytes free-->
               </Union>
               <Union SizeInBit="512">
-                <Memory CodeSegment="%MID%" Offset="16" BitOffset="0" />
+                <Memory CodeSegment="%MID%" Offset="24" BitOffset="0" />
                 <!-- FFU -->
                 <Parameter Id="%AID%_UP-%TT%00201" Name="dummy" ParameterType="%AID%_PT-boolean" Offset="0" BitOffset="0" Text="Dummy" Value="0" />
               </Union>
