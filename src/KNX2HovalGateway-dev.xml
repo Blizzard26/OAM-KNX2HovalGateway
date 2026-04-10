@@ -4,21 +4,22 @@
 
   <op:config href="KNX2HovalGateway.conf.xml" />
 
-    
   <op:nowarn id="1" regex="HOV_ApplicationVersion" />
   <op:nowarn id="1" regex="HOV_ReplacesVersions" />
   
-  <op:ETS OpenKnxId="0xFF"
-    ApplicationNumber="0x19"
-    ApplicationVersion="0.3"
-    ReplacesVersions="0.2"
-    ApplicationRevision="0"
+  <op:ETS 
     ProductName="KNX-Hoval Gateway"
-    BuildSuffix="-Dev"
-    BuildSuffixText=" (Dev)"
+    OpenKnxId="0xFF"
+    ApplicationNumber="0x19"
+    ApplicationVersion="0.4.0"
+    ReplacesVersions="0.3 0.2"
+    ApplicationRevision="0"
+    ApplicationName="AL-OpenKnxHovalGateway"
     OrderNumber="Dev-AL-OpenKnxHovalGateway"
     SerialNumber="0xA71A"
     MediumTypes="MT-0"
+    BuildSuffix="-Dev"
+    BuildSuffixText=" (Dev)"
   />
 
   <op:define prefix="BASE"
@@ -39,7 +40,7 @@
   <op:define prefix="HOV" ModuleType="20"
     share="../lib/OFM-HovalGateway/src/HovalGateway.share.xml"
     KoSingleOffset="100">
-    <!--<op:verify File="../library.json" ModuleVersion="%ReleaseApplicationVersion%" />-->
+    <op:verify File="../lib/OFM-HovalGateway/library.json" ModuleVersion="%HOV_VerifyVersion%" />
   </op:define>
 
   <!-- 
