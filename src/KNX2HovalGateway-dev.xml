@@ -5,8 +5,8 @@
   <op:config href="KNX2HovalGateway.conf.xml" />
 
     
-  <op:nowarn id="1" regex="HOVAL_ApplicationVersion" />
-  <op:nowarn id="1" regex="HOVAL_ReplacesVersions" />
+  <op:nowarn id="1" regex="HOV_ApplicationVersion" />
+  <op:nowarn id="1" regex="HOV_ReplacesVersions" />
   
   <op:ETS OpenKnxId="0xFF"
     ApplicationNumber="0x19"
