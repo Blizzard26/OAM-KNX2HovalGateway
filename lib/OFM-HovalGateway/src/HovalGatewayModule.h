@@ -38,12 +38,6 @@ private:
   uint16_t loopCount = 0;
   uint8_t canErrorCount = 0;
 
-#if defined(OPENKNX_DEBUG)
-  uint32_t minLoopDuration = UINT32_MAX;
-  uint32_t maxLoopDuration = 0;
-  uint32_t avgLoopDurationSum = 0;
-#endif
-
   /* Begin Can / Hoval Interface */
   mcp2515_can CAN;
   HovalProtocolHandler hoval;
