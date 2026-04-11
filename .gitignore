@@ -9,5 +9,4 @@ include/versions.h
 *.log
 restore/
 release/
-dependencies.txt
 src/KNX2HovalGateway-*.debug.xml
