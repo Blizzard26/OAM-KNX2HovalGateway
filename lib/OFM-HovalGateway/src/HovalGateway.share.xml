@@ -92,6 +92,7 @@
             </ParameterRefs>
             <ComObjectTable>
               <ComObject Id="%AID%_O-%TT%00001" Name="global_online" Text="Allgemein" FunctionText="Online" Number="0" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%TT%00003" Name="general_diagnose" Text="Allgemein" Number="3" FunctionText="Diagnosetext" ObjectSize="14 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-16-1" />
               <ComObject Id="%AID%_O-%TT%00009" Name="general_maintenance_remaining" Text="Allgemein" Number="9" FunctionText="Restlaufzeit Wartungszähler" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-7" />
               <!-- operating-mode -->
               <ComObject Id="%AID%_O-%TT%00010" Name="vent_operating_mode_standby" Text="Betriebswahl Lüftung" Number="10" FunctionText="Standby" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-11" />
@@ -155,6 +156,7 @@
             </ComObjectTable>
             <ComObjectRefs>
               <ComObjectRef Id="%AID%_O-%TT%00001_R-%TT%0000101" RefId="%AID%_O-%TT%00001" />
+              <ComObjectRef Id="%AID%_O-%TT%00003_R-%TT%0000301" RefId="%AID%_O-%TT%00003" />
               <ComObjectRef Id="%AID%_O-%TT%00009_R-%TT%0000901" RefId="%AID%_O-%TT%00009" />
               <!-- operating mode -->
               <ComObjectRef Id="%AID%_O-%TT%00010_R-%TT%0001001" RefId="%AID%_O-%TT%00010" />
@@ -275,6 +277,8 @@
 
                 <!-- Online -->
                 <ComObjectRefRef RefId="%AID%_O-%TT%00001_R-%TT%0000101" />
+                <!-- General Diagnose -->
+                <ComObjectRefRef RefId="%AID%_O-%TT%00003_R-%TT%0000301" />
                 <!-- Maintenance Remaining -->
                 <ComObjectRefRef RefId="%AID%_O-%TT%00009_R-%TT%0000901" />
 
