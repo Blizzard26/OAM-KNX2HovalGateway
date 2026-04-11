@@ -247,6 +247,7 @@
 #define ParamHOV_dummy                               ((bool)(knx.paramByte(HOV_dummy) & HOV_dummyMask))
 
 #define HOV_Koglobal_online 100
+#define HOV_Kogeneral_diagnose 103
 #define HOV_Kogeneral_maintenance_remaining 109
 #define HOV_Kovent_operating_mode_standby 110
 #define HOV_Kovent_operating_mode_week1 111
@@ -291,6 +292,8 @@
 
 // Allgemein
 #define KoHOV_global_online                       (knx.getGroupObject(HOV_Koglobal_online))
+// Allgemein
+#define KoHOV_general_diagnose                    (knx.getGroupObject(HOV_Kogeneral_diagnose))
 // Allgemein
 #define KoHOV_general_maintenance_remaining       (knx.getGroupObject(HOV_Kogeneral_maintenance_remaining))
 // Betriebswahl Lüftung

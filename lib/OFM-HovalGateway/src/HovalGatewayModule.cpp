@@ -112,12 +112,18 @@ inline bool Knx2HovalGatewayModule::checkCanError()
   uint8_t err_ptr;
   if (CAN.checkError(&err_ptr) != CAN_OK)
   {
-    logErrorP("CAN error: %#02X", err_ptr);
     uint8_t rxStatus = (CAN.readRxTxStatus() & MCP_STAT_RXIF_MASK);
-    logDebugP("RX-Status: %#02X", rxStatus);
-#if defined(BASE_KoDiagnose)
-    openknx.console.writeDiagnoseKo("CAN-E %#02X R %#01X", err_ptr, rxStatus);
-#endif
+    logDebugP("CAN error: %#02X; RX-Status: %#02X", err_ptr, rxStatus);
+
+    uint16_t errorCode = (err_ptr << 8) | rxStatus;
+    if (errorCode != lastCanError)
+    {
+      lastCanError = errorCode;
+      char errorStringBuf[15];
+
+      snprintf(errorStringBuf, 15, "CAN-E %#02X R %#01X", err_ptr, rxStatus);
+      KoHOV_general_diagnose.value(errorStringBuf, DPT_String_8859_1);
+    }
 
     canErrorCount++;
     if (canErrorCount > 20)
@@ -126,11 +132,13 @@ inline bool Knx2HovalGatewayModule::checkCanError()
       ready = false; // This will trigger a reconnect on the next iteration.
       lastReconnectTry = 0;
       canErrorCount = 0;
+      lastCanError = 0;
     }
   }
   else
   {
     canErrorCount = 0;
+    lastCanError = 0;
   }
   return true;
 }

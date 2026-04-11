@@ -36,6 +36,7 @@ private:
 
   uint16_t loopCount = 0;
   uint8_t canErrorCount = 0;
+  uint16_t lastCanError = 0;
 
   /* Begin Can / Hoval Interface */
   mcp2515_can CAN;
