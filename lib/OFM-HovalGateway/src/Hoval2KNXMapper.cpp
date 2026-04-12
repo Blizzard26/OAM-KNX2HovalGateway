@@ -6,12 +6,6 @@
 
 #include "HovalProtocolDecoder.h"
 
-#ifndef delayCheck
-// clang-format off
-#define delayCheck(last, duration) (millis() - last >= duration)
-// clang-format on
-#endif
-
 #define UPDATE_REQUEST_RATE_MS 250
 
 bool Hoval2KNXMapper::task()

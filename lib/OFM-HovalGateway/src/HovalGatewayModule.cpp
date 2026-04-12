@@ -11,12 +11,6 @@
 // Needs to be included after Hoval2KNXMapper.h
 #include "HovalMessageTransformer.h"
 
-#ifndef delayCheck
-// clang-format off
-#define delayCheck(last, duration) (millis() - last >= duration)
-// clang-format on
-#endif
-
 #ifndef CAN_ERROR_LOOP_CNT
 #define CAN_ERROR_LOOP_CNT 128
 #endif
