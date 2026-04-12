@@ -36,15 +36,15 @@
               <Union SizeInBit="128">
                 <Memory CodeSegment="%MID%" Offset="8" BitOffset="0" />
                 <!-- Device -->
-                <Parameter Id="%AID%_UP-%TT%00101" Name="homevent_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="  Typ (HomeVent: 32)" Value="32" />
-                <Parameter Id="%AID%_UP-%TT%00102" Name="homevent_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="  Addresse (Typisch 8)" Value="8" />
+                <Parameter Id="%AID%_UP-%TT%00101" Name="homevent_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Typ (HomeVent: 32)" Value="32" />
+                <Parameter Id="%AID%_UP-%TT%00102" Name="homevent_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Addresse (Typisch 8)" Value="8" />
                 <!-- Active Send Interval-->
                 <Parameter Id="%AID%_UP-%TT%00103" Name="homevent_sendActive_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%00104" Name="homevent_sendActive_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="2" BitOffset="2" Text="Zeit" Value="5" />
                 <!-- 1 Bytes free -->
                 <!-- Available Options -->
-                <Parameter Id="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="0" Text="  VOC Sensor vorhanden" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%00112" Name="general_rpm2_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="1" Text="  RPM2 Present" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="0" Text="VOC Sensor vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00112" Name="general_rpm2_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="1" Text="RPM2 Present" Value="0" />
                 <!-- 6 bit free -->
                 
                 <!-- Settings -->
@@ -52,14 +52,14 @@
                 <Parameter Id="%AID%_UP-%TT%00121" Name="homevent_pollingInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="5" BitOffset="0" Text="Zeitbasis" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%00122" Name="homevent_pollingInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="5" BitOffset="2" Text="Zeit" Value="60" />
                 
-                <Parameter Id="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" ParameterType="%AID%_PT-boolean" Offset="6" BitOffset="0" Text="  Jede Änderung senden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" ParameterType="%AID%_PT-boolean" Offset="6" BitOffset="0" Text="Jede Änderung senden" Value="0" />
                 <!-- 7 Bits free -->
                 <!-- Send Interval-->
                 <Parameter Id="%AID%_UP-%TT%00131" Name="homevent_sendInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="7" BitOffset="0" Text="Zeitbasis" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%00132" Name="homevent_sendInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="7" BitOffset="2" Text="Zeit" Value="5" />
                 <!-- 2 Bytes free -->
                 <!-- Erweitert -->
-                <Parameter Id="%AID%_UP-%TT%00141" Name="homevent_expert_mode" ParameterType="%AID%_PT-boolean" Offset="10" BitOffset="0" Text="  Expertenmodus" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00141" Name="homevent_expert_mode" ParameterType="%AID%_PT-boolean" Offset="10" BitOffset="0" Text="Expertenmodus" Value="0" />
                 <!-- 7 bits free-->
                 <!-- 5 bytes free-->
               </Union>
@@ -220,8 +220,8 @@
               </ParameterBlock>
               <ParameterBlock Id="%AID%_PB-nnn" Text="HomeVent" Name="HomeVent">
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Gerät" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00102_R-%TT%0010201" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" IndentLevel="1"/>
+                <ParameterRefRef RefId="%AID%_UP-%TT%00102_R-%TT%0010201" IndentLevel="1"/>
 
                 <ParameterBlock Id="%AID%_PB-nnn" Name="SendActiveInterval" Inline="true" Layout="Grid">
                   <Rows>
@@ -238,8 +238,8 @@
                 </ParameterBlock>
                 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Optionen" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00111_R-%TT%0011101" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00112_R-%TT%0011201" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00111_R-%TT%0011101" IndentLevel="1" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00112_R-%TT%0011201" IndentLevel="1" />
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Einstellungen" UIHint="Headline" />
                 <ParameterBlock Id="%AID%_PB-nnn" Name="GlobalRequestInterval" Inline="true" Layout="Grid">
@@ -256,7 +256,7 @@
                   <ParameterRefRef RefId="%AID%_UP-%TT%00121_R-%TT%0012101" Cell="1,3" IndentLevel="1" />
                 </ParameterBlock>
 
-                <ParameterRefRef RefId="%AID%_UP-%TT%00123_R-%TT%0012301" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00123_R-%TT%0012301" IndentLevel="1" />
                 <ParameterBlock Id="%AID%_PB-nnn" Name="GlobalSendInterval" Inline="true" Layout="Grid">
                   <Rows>
                     <Row Id="%AID%_PB-nnn_R-1" Name="Row1" />
@@ -272,7 +272,7 @@
                 </ParameterBlock>
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweitert" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00141_R-%TT%0014101" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00141_R-%TT%0014101" IndentLevel="1" />
                 
 
                 <!-- Online -->
