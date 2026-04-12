@@ -3,6 +3,7 @@
 #include "hardware.h"
 #include "math.h"
 #include <mcp2515_can_dfs.h>
+#include <string.h>
 
 #define MAX_SEND_ERROR_CNT 10
 
@@ -24,12 +25,6 @@ static const uint8_t FIRST_MESSAGE_MAX_BODY_LENGTH = MAX_MESSAGE_LENGTH - MULTI_
 static const uint8_t FOLLOW_MESSAGE_HEADER_LENGTH = 1;
 static const uint8_t FOLLOW_MESSAGE_MAX_BODY_LENGTH = MAX_MESSAGE_LENGTH - FOLLOW_MESSAGE_HEADER_LENGTH;
 static const uint8_t MAX_MESSAGE_COUNT = 31;
-
-#ifndef delayCheck
-#define delayCheck(last, duration) (millis() - last >= duration)
-#endif
-
-#include <string.h>
 
 #if !defined(CAN_CLOCK)
 #error "CAN_CLOCK not defined. "
