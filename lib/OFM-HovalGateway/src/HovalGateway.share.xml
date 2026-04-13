@@ -2,8 +2,6 @@
 <?xml-model href="../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer"
   xmlns="http://knx.org/xml/project/20" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
-
-
   <ManufacturerData>
     <Manufacturer RefId="M-00FA">
       <ApplicationPrograms>
@@ -212,13 +210,13 @@
             </ComObjectRefs>
           </Static>
           <Dynamic>
-            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Text="Hoval" Name="Hoval">
-              <ParameterBlock Id="%AID%_PB-nnn" Text="Gateway" Name="Gateway">
+            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Text="Hoval" Name="Hoval" Icon="alpha-h-box-outline" >
+              <ParameterBlock Id="%AID%_PB-nnn" Text="Gateway" Name="Gateway" Icon="ethernet" >
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Allgemein" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" />
                 <ParameterRefRef RefId="%AID%_UP-%TT%00003_R-%TT%0000301" />
               </ParameterBlock>
-              <ParameterBlock Id="%AID%_PB-nnn" Text="HomeVent" Name="HomeVent">
+              <ParameterBlock Id="%AID%_PB-nnn" Text="HomeVent" Name="HomeVent" Icon="fan">
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Gerät" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" IndentLevel="1"/>
                 <ParameterRefRef RefId="%AID%_UP-%TT%00102_R-%TT%0010201" IndentLevel="1"/>
@@ -368,6 +366,11 @@
           </Dynamic>
         </ApplicationProgram>
       </ApplicationPrograms>
+      <Baggages>
+        <Baggage TargetPath="" Name="Icons.zip" Id="%FILE-ICONS%">
+          <FileInfo TimeInfo="%DATETIME%" />
+        </Baggage>
+      </Baggages>
     </Manufacturer>
   </ManufacturerData>
 </KNX>
