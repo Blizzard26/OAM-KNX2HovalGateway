@@ -56,13 +56,13 @@ void Knx2HovalGatewayModule::processAfterStartupDelay()
 
 void Knx2HovalGatewayModule::readParams()
 {
-  this->vocSensorPresent = ParamHOV_homevent_voc_sensor_present;
+  this->vocSensorPresent = ParamHOV_HVVocSensorPresent;
 
-  this->gatewayUnitId = ParamHOV_gateway_device_type << 4 | ParamHOV_gateway_device_id;
+  this->gatewayUnitId = ParamHOV_GatewayDeviceType << 4 | ParamHOV_GatewayDeviceId;
 
-  this->deviceUnitId = ParamHOV_homevent_device_type << 4 | ParamHOV_homevent_device_id;
+  this->deviceUnitId = ParamHOV_HVDeviceType << 4 | ParamHOV_HVDeviceId;
 
-  this->requestInterval = ParamHOV_homevent_pollingInterval_DelayTimeMS;
+  this->requestInterval = ParamHOV_HVPollingIntervalDelayTimeMS;
 }
 
 inline static constexpr const uint32_t calculateTimeDifference(const uint32_t lastTime, const uint32_t newTime)
@@ -188,7 +188,7 @@ inline bool Knx2HovalGatewayModule::checkActive()
   {
     changed = KoHOV_global_online.valueCompare(active && ready, DPT_Switch);
   }
-  if (!changed && delayCheck(lastHeartbeat, ParamHOV_homevent_sendActive_DelayTimeMS))
+  if (!changed && delayCheck(lastHeartbeat, ParamHOV_HVSendActiveDelayTimeMS))
   {
     lastHeartbeat = millis();
     KoHOV_global_online.objectWritten();

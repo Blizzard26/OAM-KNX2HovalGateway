@@ -27,39 +27,38 @@
             <Parameters>
               <Union SizeInBit="64">
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%00001" Name="gateway_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Typ (wird verwendet für Anfragen an die Lüftung; Typisch 64)" Value="64" />
-                <Parameter Id="%AID%_UP-%TT%00003" Name="gateway_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Id (wird verwendet für Anfragen an die Lüftung; Typisch 8 oder 9)" Value="9" />
-                <!-- 48 Bits free -->
+                <Parameter Id="%AID%_UP-%TT%00001" Name="GatewayDeviceType" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Gateway Typ (wird verwendet für Anfragen an die Lüftung; Typisch 64)" Value="64" />
+                <Parameter Id="%AID%_UP-%TT%00003" Name="GatewayDeviceId" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Gateway Id (wird verwendet für Anfragen an die Lüftung; Typisch 8 oder 9)" Value="9" />
+                <!-- Erweitert -->
+                <Parameter Id="%AID%_UP-%TT%00004" Name="GeneralExpertMode" ParameterType="%AID%_PT-boolean" Offset="2" BitOffset="0" Text="Expertenmodus" Value="0" />
+                <!-- 7 Bits free -->
+                <!-- 5 Bytes free -->
               </Union>
               <Union SizeInBit="128">
                 <Memory CodeSegment="%MID%" Offset="8" BitOffset="0" />
                 <!-- Device -->
-                <Parameter Id="%AID%_UP-%TT%00101" Name="homevent_device_type" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Typ (HomeVent: 32)" Value="32" />
-                <Parameter Id="%AID%_UP-%TT%00102" Name="homevent_device_id" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Addresse (Typisch 8)" Value="8" />
+                <Parameter Id="%AID%_UP-%TT%00101" Name="HVDeviceType" ParameterType="%AID%_PT-uint8" Offset="0" BitOffset="0" Text="Typ (HomeVent: 32)" Value="32" />
+                <Parameter Id="%AID%_UP-%TT%00102" Name="HVDeviceId" ParameterType="%AID%_PT-uint8" Offset="1" BitOffset="0" Text="Addresse (Typisch 8)" Value="8" />
                 <!-- Active Send Interval-->
-                <Parameter Id="%AID%_UP-%TT%00103" Name="homevent_sendActive_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%00104" Name="homevent_sendActive_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="2" BitOffset="2" Text="Zeit" Value="5" />
+                <Parameter Id="%AID%_UP-%TT%00103" Name="HVSendActiveDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%00104" Name="HVSendActiveDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="2" BitOffset="2" Text="Zeit" Value="5" />
                 <!-- 1 Bytes free -->
                 <!-- Available Options -->
-                <Parameter Id="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="0" Text="VOC Sensor vorhanden" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%00112" Name="general_rpm2_present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="1" Text="RPM2 Present" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00111" Name="HVVocSensorPresent" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="0" Text="VOC Sensor vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00112" Name="GeneralRpm2Present" ParameterType="%AID%_PT-boolean" Offset="4" BitOffset="1" Text="RPM2 Present" Value="0" />
                 <!-- 6 bit free -->
                 
                 <!-- Settings -->
                 <!-- Request Interval -->
-                <Parameter Id="%AID%_UP-%TT%00121" Name="homevent_pollingInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="5" BitOffset="0" Text="Zeitbasis" Value="0" />
-                <Parameter Id="%AID%_UP-%TT%00122" Name="homevent_pollingInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="5" BitOffset="2" Text="Zeit" Value="60" />
+                <Parameter Id="%AID%_UP-%TT%00121" Name="HVPollingIntervalDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="5" BitOffset="0" Text="Zeitbasis" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00122" Name="HVPollingIntervalDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="5" BitOffset="2" Text="Zeit" Value="60" />
                 
-                <Parameter Id="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" ParameterType="%AID%_PT-boolean" Offset="6" BitOffset="0" Text="Jede Änderung senden" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00123" Name="HVSendEveryChange" ParameterType="%AID%_PT-boolean" Offset="6" BitOffset="0" Text="Jede Änderung senden" Value="0" />
                 <!-- 7 Bits free -->
                 <!-- Send Interval-->
-                <Parameter Id="%AID%_UP-%TT%00131" Name="homevent_sendInterval_DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="7" BitOffset="0" Text="Zeitbasis" Value="1" />
-                <Parameter Id="%AID%_UP-%TT%00132" Name="homevent_sendInterval_DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="7" BitOffset="2" Text="Zeit" Value="5" />
-                <!-- 2 Bytes free -->
-                <!-- Erweitert -->
-                <Parameter Id="%AID%_UP-%TT%00141" Name="homevent_expert_mode" ParameterType="%AID%_PT-boolean" Offset="10" BitOffset="0" Text="Expertenmodus" Value="0" />
-                <!-- 7 bits free-->
-                <!-- 5 bytes free-->
+                <Parameter Id="%AID%_UP-%TT%00131" Name="HVsendIntervalDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="7" BitOffset="0" Text="Zeitbasis" Value="1" />
+                <Parameter Id="%AID%_UP-%TT%00132" Name="HVSendIntervalDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="7" BitOffset="2" Text="Zeit" Value="5" />
+                <!-- 8 bytes free-->
               </Union>
               <Union SizeInBit="512">
                 <Memory CodeSegment="%MID%" Offset="24" BitOffset="0" />
@@ -68,25 +67,25 @@
               </Union>
             </Parameters>
             <ParameterRefs>
-              <ParameterRef Id="%AID%_UP-%TT%00001_R-%TT%0000101" RefId="%AID%_UP-%TT%00001" Name="gateway_device_type" />
-              <ParameterRef Id="%AID%_UP-%TT%00003_R-%TT%0000301" RefId="%AID%_UP-%TT%00003" Name="gateway_device_id" />
-              <ParameterRef Id="%AID%_UP-%TT%00103_R-%TT%0010301" RefId="%AID%_UP-%TT%00103" Name="homevent_sendActive_DelayBase" />
-              <ParameterRef Id="%AID%_UP-%TT%00104_R-%TT%0010401" RefId="%AID%_UP-%TT%00104" Name="homevent_sendActive_DelayTime" />
+              <ParameterRef Id="%AID%_UP-%TT%00001_R-%TT%0000101" RefId="%AID%_UP-%TT%00001" Name="GatewayDeviceType" />
+              <ParameterRef Id="%AID%_UP-%TT%00003_R-%TT%0000301" RefId="%AID%_UP-%TT%00003" Name="GatewayDeviceId" />
+              <ParameterRef Id="%AID%_UP-%TT%00103_R-%TT%0010301" RefId="%AID%_UP-%TT%00103" Name="HVSendActiveDelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00104_R-%TT%0010401" RefId="%AID%_UP-%TT%00104" Name="HVSendActiveDelayTime" />
               
 
-              <ParameterRef Id="%AID%_UP-%TT%00101_R-%TT%0010101" RefId="%AID%_UP-%TT%00101" Name="homevent_device_type" />
-              <ParameterRef Id="%AID%_UP-%TT%00102_R-%TT%0010201" RefId="%AID%_UP-%TT%00102" Name="homevent_device_id" />
-              <ParameterRef Id="%AID%_UP-%TT%00121_R-%TT%0012101" RefId="%AID%_UP-%TT%00121" Name="homevent_pollingInterval_DelayBase" />
-              <ParameterRef Id="%AID%_UP-%TT%00122_R-%TT%0012201" RefId="%AID%_UP-%TT%00122" Name="homevent_pollingInterval_DelayTime" />
-              <ParameterRef Id="%AID%_UP-%TT%00123_R-%TT%0012301" RefId="%AID%_UP-%TT%00123" Name="homevent_sendEveryChange" />
+              <ParameterRef Id="%AID%_UP-%TT%00101_R-%TT%0010101" RefId="%AID%_UP-%TT%00101" Name="HVDeviceType" />
+              <ParameterRef Id="%AID%_UP-%TT%00102_R-%TT%0010201" RefId="%AID%_UP-%TT%00102" Name="HVDeviceId" />
+              <ParameterRef Id="%AID%_UP-%TT%00121_R-%TT%0012101" RefId="%AID%_UP-%TT%00121" Name="HVPollingIntervalDelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00122_R-%TT%0012201" RefId="%AID%_UP-%TT%00122" Name="HVPollingIntervalDelayTime" />
+              <ParameterRef Id="%AID%_UP-%TT%00123_R-%TT%0012301" RefId="%AID%_UP-%TT%00123" Name="HVSendEveryChange" />
 
-              <ParameterRef Id="%AID%_UP-%TT%00111_R-%TT%0011101" RefId="%AID%_UP-%TT%00111" Name="homevent_voc_sensor_present" />
+              <ParameterRef Id="%AID%_UP-%TT%00111_R-%TT%0011101" RefId="%AID%_UP-%TT%00111" Name="HVVocSensorPresent" />
               <ParameterRef Id="%AID%_UP-%TT%00112_R-%TT%0011201" RefId="%AID%_UP-%TT%00112" Name="general-rpm2_present" />
               
-              <ParameterRef Id="%AID%_UP-%TT%00141_R-%TT%0014101" RefId="%AID%_UP-%TT%00141" Name="homevent_expert_mode" />
+              <ParameterRef Id="%AID%_UP-%TT%00004_R-%TT%0000401" RefId="%AID%_UP-%TT%00004" Name="GeneralExpertMode" />
 
-              <ParameterRef Id="%AID%_UP-%TT%00131_R-%TT%0013101" RefId="%AID%_UP-%TT%00131" Name="homevent_sendInterval_DelayBase" />
-              <ParameterRef Id="%AID%_UP-%TT%00132_R-%TT%0013201" RefId="%AID%_UP-%TT%00132" Name="homevent_sendInterval_DelayTime" />
+              <ParameterRef Id="%AID%_UP-%TT%00131_R-%TT%0013101" RefId="%AID%_UP-%TT%00131" Name="HVsendIntervalDelayBase" />
+              <ParameterRef Id="%AID%_UP-%TT%00132_R-%TT%0013201" RefId="%AID%_UP-%TT%00132" Name="HVSendIntervalDelayTime" />
             </ParameterRefs>
             <ComObjectTable>
               <ComObject Id="%AID%_O-%TT%00001" Name="global_online" Text="Allgemein" FunctionText="Online" Number="0" ObjectSize="1 Bit" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
@@ -211,14 +210,28 @@
           </Static>
           <Dynamic>
             <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Text="Hoval" Name="Hoval" Icon="alpha-h-box-outline" >
-              <ParameterBlock Id="%AID%_PB-nnn" Text="Gateway" Name="Gateway" Icon="ethernet" >
-                <ParameterSeparator Id="%AID%_PS-nnn" Text="Allgemein" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" />
+              <ParameterBlock Id="%AID%_PB-nnn" Text="Allgemein" Name="Allgemein" Icon="ethernet" >
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Gateway" UIHint="Headline" />
+                <choose ParamRefId="%AID%_UP-%TT%00004_R-%TT%0000401">
+                  <when test="=1">
+                    <!-- ExportMode: Gateway Typ -->
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" />
+                  </when>
+                </choose>
                 <ParameterRefRef RefId="%AID%_UP-%TT%00003_R-%TT%0000301" />
+
+                <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweitert" UIHint="Headline" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00004_R-%TT%0000401" IndentLevel="1" />
               </ParameterBlock>
               <ParameterBlock Id="%AID%_PB-nnn" Text="HomeVent" Name="HomeVent" Icon="fan">
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Gerät" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" IndentLevel="1"/>
+
+                <choose ParamRefId="%AID%_UP-%TT%00004_R-%TT%0000401">
+                  <when test="=1">
+                    <!-- ExportMode: Geräte Typ -->
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00101_R-%TT%0010101" IndentLevel="1"/>
+                  </when>
+                </choose>
                 <ParameterRefRef RefId="%AID%_UP-%TT%00102_R-%TT%0010201" IndentLevel="1"/>
 
                 <ParameterBlock Id="%AID%_PB-nnn" Name="SendActiveInterval" Inline="true" Layout="Grid">
@@ -267,11 +280,7 @@
                   <ParameterSeparator Id="%AID%_PS-nnn" Text="  zyklisch senden&#10;  (0 = nicht zyklisch senden)" Cell="1,1" />
                   <ParameterRefRef RefId="%AID%_UP-%TT%00132_R-%TT%0013201" Cell="1,2" IndentLevel="1" />
                   <ParameterRefRef RefId="%AID%_UP-%TT%00131_R-%TT%0013101" Cell="1,3" IndentLevel="1" />
-                </ParameterBlock>
-
-                <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweitert" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00141_R-%TT%0014101" IndentLevel="1" />
-                
+                </ParameterBlock>                
 
                 <!-- Online -->
                 <ComObjectRefRef RefId="%AID%_O-%TT%00001_R-%TT%0000101" />
@@ -286,7 +295,7 @@
                 <ComObjectRefRef RefId="%AID%_O-%TT%00013_R-%TT%0001301" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00014_R-%TT%0001401" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00015_R-%TT%0001501" />
-                <choose ParamRefId="%AID%_UP-%TT%00141_R-%TT%0014101">
+                <choose ParamRefId="%AID%_UP-%TT%00004_R-%TT%0000401">
                   <when test="=1">
                     <!-- ExportMode: Raw-->
                     <ComObjectRefRef RefId="%AID%_O-%TT%00019_R-%TT%0001901" />
@@ -306,7 +315,7 @@
                 <ComObjectRefRef RefId="%AID%_O-%TT%00024_R-%TT%0002401" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00025_R-%TT%0002501" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00026_R-%TT%0002601" />
-                <choose ParamRefId="%AID%_UP-%TT%00141_R-%TT%0014101">
+                <choose ParamRefId="%AID%_UP-%TT%00004_R-%TT%0000401">
                   <when test="=1">
                     <!-- ExportMode: Raw-->
                     <ComObjectRefRef RefId="%AID%_O-%TT%00029_R-%TT%0002901" />
