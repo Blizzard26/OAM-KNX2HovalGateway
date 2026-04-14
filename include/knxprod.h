@@ -209,40 +209,40 @@
 #define     HOV_dummyMask 0x80
 #define     HOV_dummyShift 7
 
-// Typ (wird verwendet für Anfragen an die Lüftung; Typisch 64)
-#define ParamHOV_gateway_device_type                 (knx.paramByte(HOV_gateway_device_type))
-// Id (wird verwendet für Anfragen an die Lüftung; Typisch 8 oder 9)
-#define ParamHOV_gateway_device_id                   (knx.paramByte(HOV_gateway_device_id))
-// Typ (HomeVent: 32)
-#define ParamHOV_homevent_device_type                (knx.paramByte(HOV_homevent_device_type))
-// Addresse (Typisch 8)
-#define ParamHOV_homevent_device_id                  (knx.paramByte(HOV_homevent_device_id))
-// Zeitbasis
-#define ParamHOV_homevent_sendActive_DelayBase       ((knx.paramByte(HOV_homevent_sendActive_DelayBase) & HOV_homevent_sendActive_DelayBaseMask) >> HOV_homevent_sendActive_DelayBaseShift)
-// Zeit
-#define ParamHOV_homevent_sendActive_DelayTime       (knx.paramWord(HOV_homevent_sendActive_DelayTime) & HOV_homevent_sendActive_DelayTimeMask)
-// Zeit (in Millisekunden)
-#define ParamHOV_homevent_sendActive_DelayTimeMS     (paramDelay(knx.paramWord(HOV_homevent_sendActive_DelayTime)))
-// VOC Sensor vorhanden
-#define ParamHOV_homevent_voc_sensor_present         ((bool)(knx.paramByte(HOV_homevent_voc_sensor_present) & HOV_homevent_voc_sensor_presentMask))
-// RPM2 Present
-#define ParamHOV_general_rpm2_present                ((bool)(knx.paramByte(HOV_general_rpm2_present) & HOV_general_rpm2_presentMask))
-// Zeitbasis
-#define ParamHOV_homevent_pollingInterval_DelayBase  ((knx.paramByte(HOV_homevent_pollingInterval_DelayBase) & HOV_homevent_pollingInterval_DelayBaseMask) >> HOV_homevent_pollingInterval_DelayBaseShift)
-// Zeit
-#define ParamHOV_homevent_pollingInterval_DelayTime  (knx.paramWord(HOV_homevent_pollingInterval_DelayTime) & HOV_homevent_pollingInterval_DelayTimeMask)
-// Zeit (in Millisekunden)
-#define ParamHOV_homevent_pollingInterval_DelayTimeMS (paramDelay(knx.paramWord(HOV_homevent_pollingInterval_DelayTime)))
-// Jede Änderung senden
-#define ParamHOV_homevent_sendEveryChange            ((bool)(knx.paramByte(HOV_homevent_sendEveryChange) & HOV_homevent_sendEveryChangeMask))
-// Zeitbasis
-#define ParamHOV_homevent_sendInterval_DelayBase     ((knx.paramByte(HOV_homevent_sendInterval_DelayBase) & HOV_homevent_sendInterval_DelayBaseMask) >> HOV_homevent_sendInterval_DelayBaseShift)
-// Zeit
-#define ParamHOV_homevent_sendInterval_DelayTime     (knx.paramWord(HOV_homevent_sendInterval_DelayTime) & HOV_homevent_sendInterval_DelayTimeMask)
-// Zeit (in Millisekunden)
-#define ParamHOV_homevent_sendInterval_DelayTimeMS   (paramDelay(knx.paramWord(HOV_homevent_sendInterval_DelayTime)))
+// Gateway Typ (wird verwendet für Anfragen an die Lüftung; Typisch 64)
+#define ParamHOV_GatewayDeviceType                   (knx.paramByte(HOV_GatewayDeviceType))
+// Gateway Id (wird verwendet für Anfragen an die Lüftung; Typisch 8 oder 9)
+#define ParamHOV_GatewayDeviceId                     (knx.paramByte(HOV_GatewayDeviceId))
 // Expertenmodus
-#define ParamHOV_homevent_expert_mode                ((bool)(knx.paramByte(HOV_homevent_expert_mode) & HOV_homevent_expert_modeMask))
+#define ParamHOV_GeneralExpertMode                   ((bool)(knx.paramByte(HOV_GeneralExpertMode) & HOV_GeneralExpertModeMask))
+// Typ (HomeVent: 32)
+#define ParamHOV_HVDeviceType                        (knx.paramByte(HOV_HVDeviceType))
+// Addresse (Typisch 8)
+#define ParamHOV_HVDeviceId                          (knx.paramByte(HOV_HVDeviceId))
+// Zeitbasis
+#define ParamHOV_HVSendActiveDelayBase               ((knx.paramByte(HOV_HVSendActiveDelayBase) & HOV_HVSendActiveDelayBaseMask) >> HOV_HVSendActiveDelayBaseShift)
+// Zeit
+#define ParamHOV_HVSendActiveDelayTime               (knx.paramWord(HOV_HVSendActiveDelayTime) & HOV_HVSendActiveDelayTimeMask)
+// Zeit (in Millisekunden)
+#define ParamHOV_HVSendActiveDelayTimeMS             (paramDelay(knx.paramWord(HOV_HVSendActiveDelayTime)))
+// VOC Sensor vorhanden
+#define ParamHOV_HVVocSensorPresent                  ((bool)(knx.paramByte(HOV_HVVocSensorPresent) & HOV_HVVocSensorPresentMask))
+// RPM2 Present
+#define ParamHOV_GeneralRpm2Present                  ((bool)(knx.paramByte(HOV_GeneralRpm2Present) & HOV_GeneralRpm2PresentMask))
+// Zeitbasis
+#define ParamHOV_HVPollingIntervalDelayBase          ((knx.paramByte(HOV_HVPollingIntervalDelayBase) & HOV_HVPollingIntervalDelayBaseMask) >> HOV_HVPollingIntervalDelayBaseShift)
+// Zeit
+#define ParamHOV_HVPollingIntervalDelayTime          (knx.paramWord(HOV_HVPollingIntervalDelayTime) & HOV_HVPollingIntervalDelayTimeMask)
+// Zeit (in Millisekunden)
+#define ParamHOV_HVPollingIntervalDelayTimeMS        (paramDelay(knx.paramWord(HOV_HVPollingIntervalDelayTime)))
+// Jede Änderung senden
+#define ParamHOV_HVSendEveryChange                   ((bool)(knx.paramByte(HOV_HVSendEveryChange) & HOV_HVSendEveryChangeMask))
+// Zeitbasis
+#define ParamHOV_HVsendIntervalDelayBase             ((knx.paramByte(HOV_HVsendIntervalDelayBase) & HOV_HVsendIntervalDelayBaseMask) >> HOV_HVsendIntervalDelayBaseShift)
+// Zeit
+#define ParamHOV_HVSendIntervalDelayTime             (knx.paramWord(HOV_HVSendIntervalDelayTime) & HOV_HVSendIntervalDelayTimeMask)
+// Zeit (in Millisekunden)
+#define ParamHOV_HVSendIntervalDelayTimeMS           (paramDelay(knx.paramWord(HOV_HVSendIntervalDelayTime)))
 // Dummy
 #define ParamHOV_dummy                               ((bool)(knx.paramByte(HOV_dummy) & HOV_dummyMask))
 

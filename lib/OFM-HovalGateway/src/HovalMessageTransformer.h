@@ -107,7 +107,7 @@ KNXValue errorToAppearanceTimestamp(HovalMessage* message)
 
 uint32_t defaultSendIntervalMs(HovalMessage* message)
 {
-  return ParamHOV_homevent_sendInterval_DelayTimeMS;
+  return ParamHOV_HVSendIntervalDelayTimeMS;
 }
 
 uint32_t errorSendIntervalMs(HovalMessage* message)
@@ -115,7 +115,7 @@ uint32_t errorSendIntervalMs(HovalMessage* message)
   ErrorMessage error = message->errorMessage();
   if (error.error_type != '\0')
   {
-    return ParamHOV_homevent_sendInterval_DelayTimeMS;
+    return ParamHOV_HVSendIntervalDelayTimeMS;
   }
   else
   {
@@ -126,7 +126,7 @@ uint32_t errorSendIntervalMs(HovalMessage* message)
 
 bool sendOnChange()
 {
-  return ParamHOV_homevent_sendEveryChange;
+  return ParamHOV_HVSendEveryChange;
 }
 
 // Hints for DPT https://www.promotic.eu/en/pmdoc/Subsystems/Comm/PmDrivers/KNXDTypes.htm
@@ -206,9 +206,9 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
                             &defaultSendIntervalMs), //
 
     HovalMessageTransformer(&VocExhaust, homeVentComObject(HOV_Kovent_voc_exhaust), DPT_Scaling, &percentToDptScaling, &sendOnChange, &defaultSendIntervalMs,
-                            []() -> bool { return ParamHOV_homevent_voc_sensor_present; }), //
+                            []() -> bool { return ParamHOV_HVVocSensorPresent; }), //
     HovalMessageTransformer(&VocOutdoor, homeVentComObject(HOV_Kovent_voc_outdoor), DPT_Scaling, &percentToDptScaling, &sendOnChange, &defaultSendIntervalMs,
-                            []() -> bool { return ParamHOV_homevent_voc_sensor_present; }), //
+                            []() -> bool { return ParamHOV_HVVocSensorPresent; }), //
 
     HovalMessageTransformer(&VentilatorExhaustPWM, homeVentComObject(HOV_Kogeneral_ventilator_exhaust_pwm), DPT_Scaling, &percentToDptScaling, &sendOnChange,
                             &defaultSendIntervalMs), //
@@ -218,7 +218,7 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
     HovalMessageTransformer(&RPMRotor1, homeVentComObject(HOV_Kogeneral_rpm_rotor1), DPT_Value_Angular_Frequency, &rpmToDptAngularFrequency, &sendOnChange,
                             &defaultSendIntervalMs), //
     HovalMessageTransformer(&RPMRotor2, homeVentComObject(HOV_Kogeneral_rpm_rotor2), DPT_Value_Angular_Frequency, &rpmToDptAngularFrequency, &sendOnChange,
-                            &defaultSendIntervalMs, []() -> bool { return ParamHOV_general_rpm2_present; }), //
+                            &defaultSendIntervalMs, []() -> bool { return ParamHOV_GeneralRpm2Present; }), //
 
     // Should be DPT_TimePeriodHrs, but the implementation for sending it is flawed
     HovalMessageTransformer(&MaintenanceRemainingTime, homeVentComObject(HOV_Kogeneral_maintenance_remaining), DPT_Value_2_Ucount, &maintenanceWeeksToHrs,
