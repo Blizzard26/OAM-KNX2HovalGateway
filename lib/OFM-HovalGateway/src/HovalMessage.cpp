@@ -63,6 +63,20 @@ bool HovalMessage::addToBody(const uint8_t* data, uint8_t length)
   return true;
 }
 
+uint16_t HovalMessage::computeCrc(uint8_t payloadLength) const
+{
+  uint8_t bufferLength = payloadLength + 5;
+  uint8_t buf[bufferLength];
+  buf[0] = functionCode;
+  buf[1] = messageType->functionGroup;
+  buf[2] = messageType->functionNumber;
+  buf[3] = messageType->dataPointId >> 8;
+  buf[4] = messageType->dataPointId & 0xFF;
+  memcpy(buf + 5, messageBody, payloadLength);
+
+  return HovalCrc::calcCrc(buf, bufferLength);
+}
+
 bool HovalMessage::validateCrc()
 {
   // Single message don't have a crc
@@ -75,21 +89,12 @@ bool HovalMessage::validateCrc()
   uint16_t receivedCrc = (uint16_t)messageBody[messageBodyLength - 2] << 8 | messageBody[messageBodyLength - 1];
 
   uint8_t payloadLength = messageBodyLength - 2;
-  uint8_t bufferLength = payloadLength + 5;
-  uint8_t buf[bufferLength];
-  buf[0] = functionCode;
-  buf[1] = messageType->functionGroup;
-  buf[2] = messageType->functionNumber;
-  buf[3] = messageType->dataPointId >> 8;
-  buf[4] = messageType->dataPointId & 0xFF;
-  memcpy(buf + 5, messageBody, payloadLength);
-
-  uint16_t calculatedCrc = HovalCrc::calcCrc(buf, bufferLength);
+  uint16_t calculatedCrc = computeCrc(payloadLength);
 
   if (calculatedCrc != receivedCrc)
   {
     logError("HovalMessage", "CRC validation failed. Expected: 0x%04X, Calculated: 0x%04X", receivedCrc, calculatedCrc);
-    logHexDebug("HovalMessage", buf, bufferLength);
+    logHexDebug("HovalMessage", messageBody, payloadLength);
     return false;
   }
 
@@ -97,6 +102,12 @@ bool HovalMessage::validateCrc()
   crc = receivedCrc;
   messageBodyLength = payloadLength;
   return true;
+}
+
+uint16_t HovalMessage::calculateCrc() const
+{
+  // Same buffer layout as validateCrc(), computed over the outgoing body
+  return computeCrc(messageBodyLength);
 }
 
 void HovalMessage::printBody(char* buf, uint8_t bufLen)

@@ -735,9 +735,7 @@ bool HovalProtocolHandler::doSend()
   }
   else
   {
-    // Calculating of CRC is currently unknown.
-    logErrorP("Sending of Multi-Part Messages is currently not supported.");
-    delete *(sendBuffer.pop());
+    sendMultiPartMessage(message);
   }
   return true;
 }
@@ -794,6 +792,108 @@ void HovalProtocolHandler::sendSingleMessage(HovalMessage* message)
     {
       delete *(sendBuffer.pop());
       sendErrorCnt = 0;
+    }
+  }
+}
+
+void HovalProtocolHandler::sendMultiPartMessage(HovalMessage* message)
+{
+  // Content length + 2 bytes of CRC
+  uint8_t bodyLength = message->messageBodyLength + 2;
+  // First message takes 1 byte, subsequent messages take 7 bytes
+  uint8_t followMessageBodyLength = bodyLength - 1;
+  // Calculate message count by calculating devision with remainder; add one for first message
+  uint8_t messageCount =
+      followMessageBodyLength / FOLLOW_MESSAGE_MAX_BODY_LENGTH + ((followMessageBodyLength % FOLLOW_MESSAGE_MAX_BODY_LENGTH != 0) ? 1 : 0) + 1;
+
+  if (sendOffset == 0)
+  {
+    // First message has messageIndex 0x1F
+    uint32_t address = buildAddress(0x1F, true, false, message->senderId, message->targetId);
+
+    uint8_t body[MAX_MESSAGE_LENGTH];
+    memset(body, 0, MAX_MESSAGE_LENGTH);
+    // Bits 7-3: Number of message of a multi-part message (including start and end message).
+    // In case of single message message count is 0 (instead of 1).
+    // Bits 3 -1: Usage unknown. Currently always 0b001
+    body[0] = messageCount << 3 | 0b001;
+    body[1] = message->messageId;
+    body[2] = (uint8_t)message->functionCode;
+    body[3] = message->messageType->functionGroup;
+    body[4] = message->messageType->functionNumber;
+    body[5] = (message->messageType->dataPointId >> 8) & 0xFF;
+    body[6] = message->messageType->dataPointId & 0xFF;
+    body[7] = message->messageBody[0];
+
+    if (trySendCANMessage(address, body, MAX_MESSAGE_LENGTH))
+    {
+      sendErrorCnt = 0;
+      sendOffset = 1;
+    }
+    else
+    {
+      sendErrorCnt++;
+      if (sendErrorCnt > MAX_SEND_ERROR_CNT)
+      {
+        delete *(sendBuffer.pop());
+        sendErrorCnt = 0;
+      }
+    }
+  }
+  else
+  {
+    // Calculate Message Index, divide send bytes - 1 (for initial message) by follow message body length and add 1 for first message
+    uint8_t messageIndex = 1 + (sendOffset - 1) / FOLLOW_MESSAGE_MAX_BODY_LENGTH;
+    // messageCount includes the first message, so the last follow-up message has index messageCount - 1
+    bool lastMessage = messageIndex >= messageCount - 1;
+    uint32_t address = buildAddress(0x1F - messageIndex, false, lastMessage, message->senderId, message->targetId);
+
+    uint8_t body[MAX_MESSAGE_LENGTH];
+    memset(body, 0, MAX_MESSAGE_LENGTH);
+    body[0] = message->messageId;
+
+    // The logical stream sent across follow-up messages is the message body followed by
+    // 2 CRC bytes; message->messageBody only physically holds the body, so bytes at or
+    // after messageBodyLength must come from the calculated CRC instead.
+    uint16_t crc = message->calculateCrc();
+    uint8_t crcBytes[2] = {(uint8_t)(crc >> 8), (uint8_t)(crc & 0xFF)};
+
+    // 7 bytes message body left
+    uint8_t payloadLength = min(FOLLOW_MESSAGE_MAX_BODY_LENGTH, bodyLength - sendOffset);
+    uint8_t contentAvailable = sendOffset < message->messageBodyLength ? message->messageBodyLength - sendOffset : 0;
+    uint8_t contentBytes = min(payloadLength, contentAvailable);
+    if (contentBytes > 0)
+      memcpy(body + FOLLOW_MESSAGE_HEADER_LENGTH, message->messageBody + sendOffset, contentBytes);
+
+    uint8_t crcBytesToCopy = payloadLength - contentBytes;
+    if (crcBytesToCopy > 0)
+    {
+      uint8_t crcOffset = sendOffset + contentBytes - message->messageBodyLength;
+      memcpy(body + FOLLOW_MESSAGE_HEADER_LENGTH + contentBytes, crcBytes + crcOffset, crcBytesToCopy);
+    }
+
+    uint8_t messageLength = FOLLOW_MESSAGE_HEADER_LENGTH + payloadLength;
+
+    if (trySendCANMessage(address, body, messageLength))
+    {
+      sendErrorCnt = 0;
+      sendOffset += payloadLength;
+
+      if (lastMessage)
+      {
+        delete *(sendBuffer.pop());
+        sendOffset = 0;
+      }
+    }
+    else
+    {
+      sendErrorCnt++;
+      if (sendErrorCnt > MAX_SEND_ERROR_CNT)
+      {
+        delete *(sendBuffer.pop());
+        sendOffset = 0;
+        sendErrorCnt = 0;
+      }
     }
   }
 }
