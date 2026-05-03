@@ -35,12 +35,12 @@ if (!$?) { exit 1 }
 # see comment in Build-Step.ps1 for argument description
 if ($($settings.releaseIndication) -eq "Release") {
   Write-Host "Building Release"
-  ./lib/OGM-Common/scripts/setup/reusable/Build-Step.ps1 knx2hovalgateway_release firmware-OpenKNX-KNX2HovalGateway uf2
+  ./lib/OGM-Common/scripts/setup/reusable/Build-Step.ps1 release_KNX2HOVALGATEWAY firmware-OpenKNX-KNX2HovalGateway uf2
   if (!$?) { exit 1 }
 }
 else {
   Write-Host "Building $($settings.releaseIndication)"
-  ./lib/OGM-Common/scripts/setup/reusable/Build-Step.ps1 knx2hovalgateway_dev firmware-OpenKNX-KNX2HovalGateway uf2
+  ./lib/OGM-Common/scripts/setup/reusable/Build-Step.ps1 dev_KNX2HOVALGATEWAY firmware-OpenKNX-KNX2HovalGateway uf2
   if (!$?) { exit 1 }
 }
 
