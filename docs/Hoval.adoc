@@ -680,6 +680,16 @@ After confirming a warning, the following message was send for some time: `B4 34
 | 00 00 | no end date - error still active
 |===
 
+=== Known Error Codes
+
+[width="100%",cols="10%,10%,20%,60%",options="header"]
+|===
+| Error Type | Error Code | Displayed Code |Meaning
+
+| 8 | 511 | W:511 |The heat generator is indicating that cleaning is required
+
+|===
+
 == Examples
 === Read Exhaust air temp
 

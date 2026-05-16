@@ -292,14 +292,6 @@ ErrorMessage HovalMessage::errorMessage() const
     return errorMessage;
   }
 
-  if (messageBody[0] > 4)
-  {
-    logInfo("HovalMessage", "Unkown Error Type %#x", messageBody[0]);
-    logIndentUp();
-    logHexInfo("HovalMessage", messageBody, messageBodyLength);
-    logIndentDown();
-  }
-
   errorMessage.error_type = mapErrorType(messageBody[0]);
   errorMessage.error_code = littleEndianToUint16(messageBody + 2);
   errorMessage.source = littleEndianToUint16(messageBody + 4);
@@ -307,26 +299,32 @@ ErrorMessage HovalMessage::errorMessage() const
   errorMessage.function_number = messageBody[7];
   errorMessage.appearance_time = convertToUnixTime(littleEndianToUint16(messageBody + 10), littleEndianToUint16(messageBody + 8));
   errorMessage.disappear_time = convertToUnixTime(littleEndianToUint16(messageBody + 14), littleEndianToUint16(messageBody + 12));
+
+  if (errorMessage.error_type == '?')
+  {
+    logInfo("HovalMessage", "Unkown Error Type %#x", messageBody[0]);
+    logIndentUp();
+    logHexInfo("HovalMessage", messageBody, messageBodyLength);
+    logIndentDown();
+  }
   return errorMessage;
 }
 
 char HovalMessage::mapErrorType(uint8_t errorType) const
 {
+  // Known error codes
+  // 03 00 FC 01 = 3:508 = B:508
+  // 08 00 FF 01 = 8:511 = W:511
   // TODO: This is currently just a wild guess. Needs to be confirmed.
-  // switch (errorType)
-  //{
-  // case 1:
-  //  return 'D'; //??
-  // case 2:
-  //  return 'I'; // ???
-  // case 3:
-  //  return 'W';
-  // case 4:
-  //  return 'E';
-  // default:
-  //  return (char)errorType;
-  //}
-  return (char)errorType;
+  switch (errorType)
+  {
+  case 3:
+    return 'B';
+  case 8:
+    return 'W';
+  default:
+    return '?';
+  }
 }
 
 constexpr uint16_t HovalMessage::littleEndianToUint16(const uint8_t* body)
