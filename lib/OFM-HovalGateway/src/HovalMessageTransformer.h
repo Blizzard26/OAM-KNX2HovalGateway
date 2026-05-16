@@ -61,17 +61,15 @@ KNXValue errorToString(HovalMessage* message)
   // variable being invalidate before the returned value is used or we create a memory leak.
   // Note that processing of the Group Value update copies the value into a new buffer.
   // Moreover, this method is used single threaded, therefore we're safe.
-  char* value = errorStringBuf;
-  memset(value, 0, 15);
+  memset(errorStringBuf, 0, sizeof(errorStringBuf));
 
   ErrorMessage errorMessage = message->errorMessage();
   if (errorMessage.error_type != 0)
   {
-    // TODO: uncomment after properly implementing HovalMessage::mapErrorType
-    // snprintf(value, 15, "%c:%d", errorMessage.error_type, errorMessage.error_code);
-    snprintf(value, 15, "%d:%d", errorMessage.error_type, errorMessage.error_code);
+    snprintf(errorStringBuf, sizeof(errorStringBuf), "%c:%d", errorMessage.error_type, errorMessage.error_code);
+    // snprintf(errorStringBuf, 15, "%d:%d", errorMessage.error_type, errorMessage.error_code);
   }
-  return KNXValue(value);
+  return KNXValue(errorStringBuf);
 }
 
 static uint8_t errorBitSet = 0;
@@ -87,6 +85,36 @@ KNXValue hasError(HovalMessage* message)
     errorBitSet &= 0xFF ^ (1 << index);
   }
   return KNXValue(errorBitSet != 0);
+}
+
+static uint8_t errorBitField = 0;
+KNXValue activeErrors(HovalMessage* message)
+{
+  uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
+  if (message->errorMessage().error_type != '\0' && message->errorMessage().error_type != 'W')
+  {
+    errorBitField |= 1 << index;
+  }
+  else
+  {
+    errorBitField &= 0xFF ^ (1 << index);
+  }
+  return KNXValue(errorBitField);
+}
+
+static uint8_t warningBitField = 0;
+KNXValue activeWarnings(HovalMessage* message)
+{
+  uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
+  if (message->errorMessage().error_type == 'W')
+  {
+    warningBitField |= 1 << index;
+  }
+  else
+  {
+    warningBitField &= 0xFF ^ (1 << index);
+  }
+  return KNXValue(warningBitField);
 }
 
 KNXValue errorToAppearanceTimestamp(HovalMessage* message)
@@ -246,6 +274,28 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
                             &errorSendIntervalMs), //
     HovalMessageTransformer(&ActiveError5, homeVentComObject(HOV_Kogeneral_active_error_5), DPT_String_8859_1, &errorToString, &sendOnChange,
                             &errorSendIntervalMs), //
+
+    HovalMessageTransformer(&ActiveError1, homeVentComObject(HOV_Kogeneral_active_error_error), DPT_Status3, &activeErrors, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError2, homeVentComObject(HOV_Kogeneral_active_error_error), DPT_Status3, &activeErrors, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError3, homeVentComObject(HOV_Kogeneral_active_error_error), DPT_Status3, &activeErrors, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError4, homeVentComObject(HOV_Kogeneral_active_error_error), DPT_Status3, &activeErrors, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError5, homeVentComObject(HOV_Kogeneral_active_error_error), DPT_Status3, &activeErrors, &sendOnChange,
+                            &defaultSendIntervalMs), //
+
+    HovalMessageTransformer(&ActiveError1, homeVentComObject(HOV_Kogeneral_active_error_warning), DPT_Status3, &activeWarnings, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError2, homeVentComObject(HOV_Kogeneral_active_error_warning), DPT_Status3, &activeWarnings, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError3, homeVentComObject(HOV_Kogeneral_active_error_warning), DPT_Status3, &activeWarnings, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError4, homeVentComObject(HOV_Kogeneral_active_error_warning), DPT_Status3, &activeWarnings, &sendOnChange,
+                            &defaultSendIntervalMs), //
+    HovalMessageTransformer(&ActiveError5, homeVentComObject(HOV_Kogeneral_active_error_warning), DPT_Status3, &activeWarnings, &sendOnChange,
+                            &defaultSendIntervalMs), //
 
     // ActiveWeek
     // DeviceName
