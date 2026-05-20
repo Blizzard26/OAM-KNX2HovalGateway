@@ -1,6 +1,7 @@
 #include "HovalMessage.h"
 #include "OpenKNX.h"
 #include "OpenKNX/Log/Logger.h"
+#include "crc/HovalCrc.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -54,7 +55,23 @@ bool HovalMessage::validateCrc()
   if (crc == 0x0000)
     return true;
 
-  // TODO: Not sure what type of CRC it is..
+  uint8_t bufferLength = messageBodyLength + 5;
+  uint8_t buf[bufferLength];
+  buf[0] = functionCode;
+  buf[1] = messageType->functionGroup;
+  buf[2] = messageType->functionNumber;
+  buf[3] = messageType->dataPointId >> 8;
+  buf[4] = messageType->dataPointId & 0xFF;
+  memcpy(buf + 5, messageBody, messageBodyLength);
+
+  uint16_t calculatedCrc = HovalCrc::calcCrc(buf, bufferLength);
+
+  if (calculatedCrc != crc)
+  {
+    logError("HovalMessage", "CRC validation failed. Expected: 0x%04X, Calculated: 0x%04X", crc, calculatedCrc);
+    logHexDebug("HovalMessage", buf, bufferLength);
+    return false;
+  }
   return true;
 }
 

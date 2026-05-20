@@ -229,7 +229,7 @@ A multi-part message consist of a start message (containing the usual header + 1
 
 Start → Intermediate → ... → End
 
-The last two bytes of the data seems to be some form of a CRC (#WARNING: algorithm unknown#).
+The last two bytes of the data seems to be some form of a CRC (cf. <<CRC>>).
 
 Start message:
 
@@ -318,6 +318,10 @@ A continuation message has 2 - 8 bytes
 
 .Multi-part Message - End Message  (Message Type  0b10)
 End message has the same structure as intermediate messages.
+
+===== CRC
+
+CRC properties (found by RevEng): width=16, poly=0x1021, init=0xb006, refin=true, refout=true, xorout=0x0000, check=0xff5a
 
 [[FunctionCodes]]
 === Function Codes
@@ -794,7 +798,6 @@ Message Content: `01 42 32 00 96 CE 2D`
 The following parts are not fully understood:
 
 - Bit 3–1 in start message (always 0b001)
-- CRC algorithm
 - Function Codes 0x30, 0x31
 - Special ping messages (E047FF, D047FF)
 - Exact Structure of Errors (especially level)

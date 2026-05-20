@@ -577,7 +577,19 @@ void HovalProtocolHandler::onMultiPartMessageCont(uint8_t messageIndex, bool las
     message->crc = (uint16_t)message->messageBody[message->messageBodyLength - 2] << 8 | message->messageBody[message->messageBodyLength - 1];
     message->messageBodyLength -= 2;
 
-    if (message->messageType->decimals == HovalMessage::DYNAMIC_MESSAGE_TYPE)
+    if (!message->validateCrc())
+    {
+      logErrorP("Crc Validation failed: fCode:  %#02X | uType: %u, uId: %u | fGrp: %u, fNo: %u, dPId: %u", message->functionCode,
+                message->messageType->unitType, (message->senderId & 0xF), message->messageType->functionGroup, message->messageType->functionNumber,
+                message->messageType->dataPointId);
+      if (isLogFilteredMessage() && isLogFilteredMessageData())
+      {
+        logIndentUp();
+        logHexErrorP(message->messageBody, message->messageBodyLength + 2);
+        logIndentDown();
+      }
+    }
+    else if (message->messageType->decimals == HovalMessage::DYNAMIC_MESSAGE_TYPE)
     {
       if (isLogFilteredMessage())
       {
@@ -589,18 +601,6 @@ void HovalProtocolHandler::onMultiPartMessageCont(uint8_t messageIndex, bool las
           logHexInfoP(message->messageBody, message->messageBodyLength);
           logIndentDown();
         }
-      }
-    }
-    else if (!message->validateCrc())
-    {
-      logErrorP("Crc Validation failed: fCode:  %#02X | uType: %u, uId: %u | fGrp: %u, fNo: %u, dPId: %u", message->functionCode,
-                message->messageType->unitType, (message->senderId & 0xF), message->messageType->functionGroup, message->messageType->functionNumber,
-                message->messageType->dataPointId);
-      if (isLogFilteredMessage() && isLogFilteredMessageData())
-      {
-        logIndentUp();
-        logHexErrorP(message->messageBody, message->messageBodyLength + 2);
-        logIndentDown();
       }
     }
     else
