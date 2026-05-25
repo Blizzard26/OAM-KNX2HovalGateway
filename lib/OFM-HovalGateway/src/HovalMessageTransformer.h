@@ -266,11 +266,18 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
 
     // Sould be DPT_TimePeriodMin, but the implementation for sending it is flawed
     HovalMessageTransformer(&PartyMode, homeVentComObject(HOV_Kovent_party_mode), DPT_Value_2_Ucount, &hoursToDptTimePeriodMin, &timePeriodMinToHours,
-                            &sendOnChange, &defaultSendIntervalMs), //
+                            &sendOnChange, &defaultSendIntervalMs, nullptr, homeVentComObject(HOV_Kovent_party_value)), //
     HovalMessageTransformer(&PauseMode, homeVentComObject(HOV_Kovent_pause_mode), DPT_Value_2_Ucount, &hoursToDptTimePeriodMin, &timePeriodMinToHours,
-                            &sendOnChange, &defaultSendIntervalMs), //
-    HovalMessageTransformer(&PartyPauseValue, homeVentComObject(HOV_Kovent_party_pause_value), DPT_Scaling, &percentToDptScaling, &scalingToPercent,
-                            &sendOnChange, &defaultSendIntervalMs), //
+                            &sendOnChange, &defaultSendIntervalMs, nullptr, homeVentComObject(HOV_Kovent_pause_value)), //
+    // party_value/pause_value share one physical Hoval register. They must never be updated from Hoval (that would
+    // let one overwrite the other via echo) and must never be sent to Hoval on their own - only as a prerequisite
+    // of PartyMode/PauseMode. Hence: never poll (activeFunc false), ignore incoming, send only as prerequisite.
+    HovalMessageTransformer(
+        &PartyPauseValue, homeVentComObject(HOV_Kovent_party_value), DPT_Scaling, &percentToDptScaling, &scalingToPercent,
+        []() -> bool { return false; }, [](HovalMessage* message) -> uint32_t { return 0; }, []() -> bool { return false; }, -1, true, true), //
+    HovalMessageTransformer(
+        &PartyPauseValue, homeVentComObject(HOV_Kovent_pause_value), DPT_Scaling, &percentToDptScaling, &scalingToPercent,
+        []() -> bool { return false; }, [](HovalMessage* message) -> uint32_t { return 0; }, []() -> bool { return false; }, -1, true, true), //
 
     HovalMessageTransformer(&TemperatureOutdoor, homeVentComObject(HOV_Kovent_temperature_outdoor), DPT_Value_Temp, &tempToDeptValueTemp, &sendOnChange,
                             &defaultSendIntervalMs),

@@ -70,9 +70,12 @@ void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
     HovalMessageTransformer* processing = &(messageTransformers[i]);
     if (processing->type == message->messageType)
     {
-      internalSendToKnx(message, processing);
-      processing->lastSeen = now;
       found = true;
+      if (!processing->ignoreIncoming)
+      {
+        internalSendToKnx(message, processing);
+      }
+      processing->lastSeen = now;
     }
   }
   if (!found)
@@ -84,15 +87,48 @@ void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
 
 void Hoval2KNXMapper::sendToHovalBus(GroupObject& ko)
 {
+  internalSendToHovalBus(ko, false);
+}
+
+void Hoval2KNXMapper::internalSendToHovalBus(GroupObject& ko, bool isPrerequisite)
+{
   bool found = false;
   for (int i = 0; i < numberOfMessageTransformers; i++)
   {
     HovalMessageTransformer* processing = &(messageTransformers[i]);
     if (processing->comObject == ko.asap())
     {
-      KNXValue value = ko.value(processing->dpt);
-      internalSendToHoval(value, processing);
       found = true;
+
+      // KOs marked sendOnlyAsPrerequisite are never sent on their own; they are only sent
+      // together with the comObject that lists them as a prerequisite.
+      if (!isPrerequisite && processing->sendOnlyAsPrerequisite)
+      {
+        continue;
+      }
+
+      KNXValue value = ko.value(processing->dpt);
+
+      // Send prerequisite first if one is defined - but only when this KO's own value actually needs
+      // sending. Without this guard, ANY call to sendToHovalBus for this KO (e.g. a periodic keep-alive
+      // resend, or this device re-broadcasting a Hoval-reported status value it just echoed back onto
+      // the KNX bus) would unconditionally re-send the prerequisite - which for party_mode/pause_mode
+      // overwrites the physical register they share, making the Hoval output oscillate between the two.
+      if (processing->prerequisiteComObject >= 0 && (isPrerequisite || processing->valueChanged(value)))
+      {
+        GroupObject& prerequisiteKo = knx.getGroupObject(processing->prerequisiteComObject);
+        if (prerequisiteKo.initialized())
+        {
+          internalSendToHovalBus(prerequisiteKo, true);
+        }
+        else
+        {
+          logErrorP("Prerequisite KO %u for KO %u not initialized, skipping send", processing->prerequisiteComObject, processing->comObject);
+          continue; // Skip sending this KO if its prerequisite is not initialized
+        }
+      }
+
+      internalSendToHoval(value, processing, isPrerequisite);
     }
   }
   if (!found)
@@ -113,7 +149,7 @@ void Hoval2KNXMapper::internalSendToKnx(HovalMessage* message, HovalMessageTrans
     messageProcessing->setLastValue(value); // Store the last KNX value from Hoval for future change detection
   }
 
-  bool requestSend = (changed && messageProcessing->sendOnChange());
+  bool requestSend = changed && messageProcessing->sendOnChange();
   if (!requestSend)
   {
     uint32_t sendInterval = messageProcessing->sendIntervalMs(message);
@@ -127,7 +163,7 @@ void Hoval2KNXMapper::internalSendToKnx(HovalMessage* message, HovalMessageTrans
   }
 }
 
-void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransformer* messageProcessing)
+void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransformer* messageProcessing, bool sendAlways)
 {
 
   if (messageProcessing->inverseTranformer == nullptr)
@@ -137,7 +173,7 @@ void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransform
   }
 
   // Check if the value to send is different from the last value received from Hoval
-  if (!messageProcessing->valueChanged(value))
+  if (!sendAlways && !messageProcessing->valueChanged(value))
   {
     logDebugP("Skipping send for KO %u: value unchanged", messageProcessing->comObject);
     return;
@@ -148,6 +184,13 @@ void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransform
   HovalValue hovalValue = messageProcessing->inverseTranformer(value);
 
   protocolHandler->write(gatewayId, deviceId, messageProcessing->type, hovalValue);
+
+  // Entries ignoring incoming Hoval messages never learn their own echo via sendToKNXBus,
+  // so track the sent value here to keep the change-detection dedup above working.
+  if (messageProcessing->ignoreIncoming)
+  {
+    messageProcessing->setLastValue(value);
+  }
 }
 
 std::string HovalMessageTransformer::logPrefix()
