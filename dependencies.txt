@@ -1,4 +1,4 @@
-﻿------- Built with -------
+------- Built with -------
 7124a64 v1 lib/knx https://github.com/OpenKNX/knx.git
 eca6977 v1 lib/OFM-ConfigTransfer https://github.com/OpenKNX/OFM-ConfigTransfer
 178f186 v1 lib/OFM-FileTransferModule https://github.com/OpenKNX/OFM-FileTransferModule.git

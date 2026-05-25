@@ -16,7 +16,7 @@
 #define MAIN_FirmwareName "KNX-Hoval Gateway"
 #define MAIN_OpenKnxId 0xFF
 #define MAIN_ApplicationNumber 26
-#define MAIN_ApplicationVersion 3
+#define MAIN_ApplicationVersion 4
 #define MAIN_FirmwareRevision 0
 #define MAIN_ApplicationEncoding iso-8859-15
 #define MAIN_ParameterSize 4949
@@ -24,7 +24,7 @@
 #define MAIN_OrderNumber "AL-OpenKnxHovalGateway"
 #define BASE_ModuleVersion 23
 #define UCT_ModuleVersion 5
-#define HOV_ModuleVersion 3
+#define HOV_ModuleVersion 4
 #define LOG_ModuleVersion 64
 // Parameter with single occurrence
 
@@ -284,7 +284,8 @@
 #define HOV_Kovent_economy_modulation 142
 #define HOV_Kovent_party_mode 150
 #define HOV_Kovent_pause_mode 151
-#define HOV_Kovent_party_pause_value 152
+#define HOV_Kovent_party_value 152
+#define HOV_Kovent_pause_value 153
 #define HOV_Kovent_humidity_setpoint 160
 #define HOV_Kovent_humidity_exhaust 162
 #define HOV_Kovent_temperature_outdoor 164
@@ -352,7 +353,9 @@
 // Party/Pause
 #define KoHOV_vent_pause_mode                     (knx.getGroupObject(HOV_Kovent_pause_mode))
 // Party/Pause
-#define KoHOV_vent_party_pause_value              (knx.getGroupObject(HOV_Kovent_party_pause_value))
+#define KoHOV_vent_party_value                    (knx.getGroupObject(HOV_Kovent_party_value))
+// Party/Pause
+#define KoHOV_vent_pause_value                    (knx.getGroupObject(HOV_Kovent_pause_value))
 // Luftfeuchtigkeit
 #define KoHOV_vent_humidity_setpoint              (knx.getGroupObject(HOV_Kovent_humidity_setpoint))
 // Luftfeuchtigkeit
