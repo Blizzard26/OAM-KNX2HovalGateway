@@ -15,6 +15,10 @@ struct HovalMessageTransformer
 
   const HovalMessageType* type;
   const uint16_t comObject = 0;
+  const int16_t prerequisiteComObject = -1; // ComObject that must be sent before this one (-1 = none)
+  const bool ignoreIncoming = false;         // If true, incoming Hoval messages of this type are never applied to this comObject
+  const bool sendOnlyAsPrerequisite = false; // If true, a direct write to this comObject is not forwarded to Hoval;
+                                              // it is only sent when pulled in as another entry's prerequisite
   // const float factor = 1.f;
   const Dpt dpt;
   KNXValue (*const transformer)(HovalMessage*);
@@ -43,9 +47,11 @@ public:
   /// @param _transformer Function to transform HovalMessage to KNXValue
   HovalMessageTransformer(const HovalMessageType* _type, uint8_t _comObject, Dpt _dpt, KNXValue (*_transformer)(HovalMessage*),
                           HovalValue (*_inverseTranformer)(KNXValue&), bool (*_sendOnChange)(), uint32_t (*_sendIntervalMs)(HovalMessage*),
-                          bool (*_activeFunc)() = nullptr)
-      : type(_type), comObject(_comObject), dpt(_dpt), transformer(_transformer), sendOnChangeFunc(_sendOnChange), sendIntervalMsFunc(_sendIntervalMs),
-        activeFunc(_activeFunc), inverseTranformer(_inverseTranformer)
+                          bool (*_activeFunc)() = nullptr, int16_t _prerequisiteComObject = -1, bool _ignoreIncoming = false,
+                          bool _sendOnlyAsPrerequisite = false)
+      : type(_type), comObject(_comObject), prerequisiteComObject(_prerequisiteComObject), ignoreIncoming(_ignoreIncoming),
+        sendOnlyAsPrerequisite(_sendOnlyAsPrerequisite), dpt(_dpt), transformer(_transformer), sendOnChangeFunc(_sendOnChange),
+        sendIntervalMsFunc(_sendIntervalMs), activeFunc(_activeFunc), inverseTranformer(_inverseTranformer)
   {
     uint8_t dataLength = dpt.dataLength();
     sizeInMemory = (dpt.mainGroup == 16) ? dataLength + 1 : dataLength; // Initialize sizeInMemory
@@ -53,8 +59,10 @@ public:
   }
 
   HovalMessageTransformer(const HovalMessageType* _type, uint8_t _comObject, Dpt _dpt, KNXValue (*_transformer)(HovalMessage*), bool (*_sendOnChange)(),
-                          uint32_t (*_sendIntervalMs)(HovalMessage*), bool (*_activeFunc)() = nullptr)
-      : HovalMessageTransformer(_type, _comObject, _dpt, _transformer, nullptr, _sendOnChange, _sendIntervalMs, _activeFunc)
+                          uint32_t (*_sendIntervalMs)(HovalMessage*), bool (*_activeFunc)() = nullptr, int16_t _prerequisiteComObject = -1,
+                          bool _ignoreIncoming = false, bool _sendOnlyAsPrerequisite = false)
+      : HovalMessageTransformer(_type, _comObject, _dpt, _transformer, nullptr, _sendOnChange, _sendIntervalMs, _activeFunc, _prerequisiteComObject,
+                                _ignoreIncoming, _sendOnlyAsPrerequisite)
   {}
 
   ~HovalMessageTransformer()
@@ -92,6 +100,12 @@ private:
   void internalSendToHoval(KNXValue& value, HovalMessageTransformer* messageProcessing);
   void requestUpdate(const HovalMessageType* type);
 
+  /// @brief Internal implementation of sendToHovalBus.
+  /// @param ko KNX Comm-Object to send to Hoval
+  /// @param isPrerequisite Set to true when this call is made to send another comObject's prerequisite value.
+  ///                        Allows sending comObjects marked as sendOnlyAsPrerequisite.
+  void internalSendToHovalBus(GroupObject& ko, bool isPrerequisite);
+
   std::string logPrefix() { return "Hoval2KNXMapper"; }
 
 public:
@@ -121,9 +135,7 @@ public:
   void sendToKNXBus(HovalMessage* message);
 
   /// @brief Forward KNX Message to Hoval CAN Bus
-  /// @tparam T Type of the value to be send. Supported types: uint8_t, uint16_t
-  /// @param comObjIndex Index of the KNX Comm-Object to send the message to
-  /// @param value value to be send.
+  /// @param ko KNX Comm-Object to send to Hoval
   void sendToHovalBus(GroupObject& ko);
 
   void hovalEvent(HovalMessage* message);

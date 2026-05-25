@@ -117,7 +117,8 @@
               <!-- Party/Pause -->
               <ComObject Id="%AID%_O-%TT%00050" Name="vent_party_mode" Text="Party/Pause" Number="50" FunctionText="Party Modus" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-6" />
               <ComObject Id="%AID%_O-%TT%00051" Name="vent_pause_mode" Text="Party/Pause" Number="51" FunctionText="Pause Modus" ObjectSize="2 Bytes" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-6" />
-              <ComObject Id="%AID%_O-%TT%00052" Name="vent_party_pause_value" Text="Party/Pause" Number="52" FunctionText="Aktueller Wert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00052" Name="vent_party_value" Text="Party/Pause" Number="52" FunctionText="Wert Party" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%TT%00053" Name="vent_pause_value" Text="Party/Pause" Number="53" FunctionText="Wert Pause" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
               
               <!-- Humidity -->
               <ComObject Id="%AID%_O-%TT%00060" Name="vent_humidity_setpoint" Text="Luftfeuchtigkeit" Number="60" FunctionText="Sollwert" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Enabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
@@ -182,6 +183,7 @@
               <ComObjectRef Id="%AID%_O-%TT%00050_R-%TT%0005001" RefId="%AID%_O-%TT%00050" />
               <ComObjectRef Id="%AID%_O-%TT%00051_R-%TT%0005101" RefId="%AID%_O-%TT%00051" />
               <ComObjectRef Id="%AID%_O-%TT%00052_R-%TT%0005201" RefId="%AID%_O-%TT%00052" />
+              <ComObjectRef Id="%AID%_O-%TT%00053_R-%TT%0005301" RefId="%AID%_O-%TT%00053" />
               <!-- Humidity -->
               <ComObjectRef Id="%AID%_O-%TT%00060_R-%TT%0006001" RefId="%AID%_O-%TT%00060" />
               <ComObjectRef Id="%AID%_O-%TT%00062_R-%TT%0006201" RefId="%AID%_O-%TT%00062" />
@@ -335,6 +337,7 @@
                 <ComObjectRefRef RefId="%AID%_O-%TT%00050_R-%TT%0005001" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00051_R-%TT%0005101" />
                 <ComObjectRefRef RefId="%AID%_O-%TT%00052_R-%TT%0005201" />
+                <ComObjectRefRef RefId="%AID%_O-%TT%00053_R-%TT%0005301" />
 
                 <!-- Humidity -->
                 <ComObjectRefRef RefId="%AID%_O-%TT%00060_R-%TT%0006001" />

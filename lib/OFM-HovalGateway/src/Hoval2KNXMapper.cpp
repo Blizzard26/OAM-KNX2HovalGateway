@@ -70,9 +70,12 @@ void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
     HovalMessageTransformer* processing = &(messageTransformers[i]);
     if (processing->type == message->messageType)
     {
-      internalSendToKnx(message, processing);
-      processing->lastSeen = now;
       found = true;
+      if (!processing->ignoreIncoming)
+      {
+        internalSendToKnx(message, processing);
+      }
+      processing->lastSeen = now;
     }
   }
   if (!found)
@@ -84,15 +87,43 @@ void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
 
 void Hoval2KNXMapper::sendToHovalBus(GroupObject& ko)
 {
+  internalSendToHovalBus(ko, false);
+}
+
+void Hoval2KNXMapper::internalSendToHovalBus(GroupObject& ko, bool isPrerequisite)
+{
   bool found = false;
   for (int i = 0; i < numberOfMessageTransformers; i++)
   {
     HovalMessageTransformer* processing = &(messageTransformers[i]);
     if (processing->comObject == ko.asap())
     {
+      found = true;
+
+      // KOs marked sendOnlyAsPrerequisite are never sent on their own; they are only sent
+      // together with the comObject that lists them as a prerequisite.
+      if (!isPrerequisite && processing->sendOnlyAsPrerequisite)
+      {
+        continue;
+      }
+
+      // Send prerequisite first if one is defined
+      if (processing->prerequisiteComObject >= 0)
+      {
+        GroupObject& prerequisiteKo = knx.getGroupObject(processing->prerequisiteComObject);
+        if (prerequisiteKo.initialized())
+        {
+          internalSendToHovalBus(prerequisiteKo, true);
+        }
+        else
+        {
+          logErrorP("Prerequisite KO %u for KO %u not initialized, skipping send", processing->prerequisiteComObject, processing->comObject);
+          continue; // Skip sending this KO if its prerequisite is not initialized
+        }
+      }
+
       KNXValue value = ko.value(processing->dpt);
       internalSendToHoval(value, processing);
-      found = true;
     }
   }
   if (!found)
@@ -113,7 +144,7 @@ void Hoval2KNXMapper::internalSendToKnx(HovalMessage* message, HovalMessageTrans
     messageProcessing->setLastValue(value); // Store the last KNX value from Hoval for future change detection
   }
 
-  bool requestSend = (changed && messageProcessing->sendOnChange());
+  bool requestSend = changed && messageProcessing->sendOnChange();
   if (!requestSend)
   {
     uint32_t sendInterval = messageProcessing->sendIntervalMs(message);
@@ -148,6 +179,13 @@ void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransform
   HovalValue hovalValue = messageProcessing->inverseTranformer(value);
 
   protocolHandler->write(gatewayId, deviceId, messageProcessing->type, hovalValue);
+
+  // Entries ignoring incoming Hoval messages never learn their own echo via sendToKNXBus,
+  // so track the sent value here to keep the change-detection dedup above working.
+  if (messageProcessing->ignoreIncoming)
+  {
+    messageProcessing->setLastValue(value);
+  }
 }
 
 std::string HovalMessageTransformer::logPrefix()
