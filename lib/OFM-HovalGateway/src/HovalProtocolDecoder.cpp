@@ -230,6 +230,8 @@ uint8_t HovalProtocolHandler::getNumberOfMessageFilters()
   return numberOfMessageFilters;
 }
 
+#pragma region Received Message Processing
+
 inline const HovalMessageType* HovalProtocolHandler::findMessageType(uint8_t unitType, uint8_t functionGroup, uint8_t functionNumber, uint16_t dataPointId)
 {
   HovalMessageTypeId key(unitType, functionGroup, functionNumber, dataPointId);
@@ -330,6 +332,7 @@ void HovalProtocolHandler::onSingleMessage(uint16_t sender, uint16_t target, uin
 
     uint8_t payloadLength = (uint8_t)bodyLength - SINGLE_MESSAGE_HEADER_LENGTH;
     HovalMessage* message = new HovalMessage(0, type, functionCode, sender, target, payloadLength);
+    // TODO this could be improved and moved to the constructor - or at least tho the message class
     memcpy(message->messageBody, body + SINGLE_MESSAGE_HEADER_LENGTH, payloadLength);
     message->messageBodyLength = payloadLength;
     processMessage(message);
@@ -571,7 +574,6 @@ void HovalProtocolHandler::onMultiPartMessageCont(uint8_t messageIndex, bool las
     }
 
     // Last two bytes are some form of CRC
-
     message->crc = (uint16_t)message->messageBody[message->messageBodyLength - 2] << 8 | message->messageBody[message->messageBodyLength - 1];
     message->messageBodyLength -= 2;
 
@@ -649,6 +651,8 @@ void HovalProtocolHandler::onHovalEvent(HovalMessage* message)
   }
 }
 
+#pragma endregion
+
 bool HovalProtocolHandler::sendMessage(uint16_t sender, uint16_t target, HovalFunctionCode functionCode, const HovalMessageType* type, uint8_t* messageBody,
                                        uint8_t bodyLength)
 {
@@ -683,6 +687,8 @@ bool HovalProtocolHandler::doPing()
   lastPingTimestamp = millis();
   return true;
 }
+
+#pragma region Message Send
 
 bool HovalProtocolHandler::doSend()
 {
@@ -820,6 +826,8 @@ uint32_t HovalProtocolHandler::buildAddress(uint8_t messageIndex, bool firstMess
   return (messageIndex & 0x1F) << 24 | ((lastMessage ? LAST_MESSAGE : 0) | (firstMessage ? FIRST_MESSAGE : 0)) << 22 | (sender & 0x7FF) << 11 |
          (target & 0x7FF) << 0;
 }
+
+#pragma endregion
 
 void HovalProtocolHandler::requestUpdate(uint16_t sender, uint16_t target, const HovalMessageType* type)
 {

@@ -55,7 +55,6 @@ struct HovalMessageType
 
   const HovalDataType rawType;
   const uint8_t decimals = 0;
-  // const float factor = 1.f;
 
   const DataType dataType;
 
@@ -85,14 +84,14 @@ struct HovalMessageTypeId
       : unitType(_unitType), functionGroup(_functionGroup), functionNumber(_functionNumber), dataPointId(_dataPointId)
   {}
 
-  bool operator==(const HovalMessageTypeId& other)
+  bool operator==(const HovalMessageTypeId& other) const
   {
     return dataPointId == other.dataPointId && functionNumber == other.functionNumber && functionGroup == other.functionGroup && unitType == other.unitType;
   }
 
-  bool operator!=(const HovalMessageTypeId& other) { return !(*this == other); }
+  bool operator!=(const HovalMessageTypeId& other) const { return !(*this == other); }
 
-  uint16_t hashCode() { return dataPointId + 31 * functionNumber + 31 * 31 * functionGroup + 31 * 31 * 31 * unitType; }
+  uint16_t hashCode() const { return dataPointId + 31 * functionNumber + 31 * 31 * functionGroup + 31 * 31 * 31 * unitType; }
 };
 
 enum HovalFunctionCode
@@ -107,10 +106,12 @@ enum HovalFunctionCode
   UNKNOWN2 = 0x4C,      // Alle 10s (Nachrichten haben Muster)
   ANNOUNCEMENT = 0x50,  // Alle 10s dieselbe Nachricht (0x02080408)
   UNKNOWN4 = 0x52,      // Alle 10s (Nachrichten haben teilweise Muster)
-  READ_ERROR = 0x56,    // Fehler beim Lesen (z.B. Falls Sensor f�r Lesen nicht vorhanden)
+  READ_ERROR = 0x56,    // Fehler beim Lesen (z.B. Falls Sensor für Lesen nicht vorhanden)
   UNKNOWN5 = 0x61,      // Alle 7s
   DISPLAY_TEXT = 0x62,  // Multi-Multi-Part Nachrichten?
   UNKNOWN6 = 0x74,      // Alle 5s (Funktionsgruppe z�hlt von 0-4, Muster wiederholt sich alle 25s)
+  UNKNOWN6 = 0x74,      // Alle 5s (Funktionsgruppe zählt von 0-4, Muster wiederholt sich alle 25s)
+};
 };
 
 struct HovalMessage
@@ -160,10 +161,10 @@ private:
   // Disable copy constructor
   HovalMessage(const HovalMessage&);
 
-  inline static constexpr uint16_t bigEndianToUint16(const uint8_t* body);
   inline static constexpr uint16_t littleEndianToUint16(const uint8_t* body);
-  inline static constexpr uint32_t littleEndianToUint32(const uint8_t* body);
-  inline static constexpr int64_t littleEndianToInt64(const uint8_t* body);
+  inline static constexpr uint16_t bigEndianToUint16(const uint8_t* body);
+  inline static constexpr uint32_t bigEndianToUint32(const uint8_t* body);
+  inline static constexpr int64_t bigEndianToInt64(const uint8_t* body);
 
   char mapErrorType(uint8_t errorType) const;
 };
