@@ -49,29 +49,53 @@ HovalMessage::~HovalMessage()
   }
 }
 
+bool HovalMessage::addToBody(const uint8_t* data, uint8_t length)
+{
+  if (messageBodyLength + length > maxBodyLength)
+  {
+    logError("HovalMessage", "Cannot add data to message body. Max length exceeded. Current length: %u, Adding: %u, Max: %u", messageBodyLength, length,
+             maxBodyLength);
+    return false;
+  }
+
+  memcpy(messageBody + messageBodyLength, data, length);
+  messageBodyLength += length;
+  return true;
+}
+
 bool HovalMessage::validateCrc()
 {
   // Single message don't have a crc
-  if (crc == 0x0000)
+  if (messageBodyLength <= 2)
+  {
     return true;
+  }
 
-  uint8_t bufferLength = messageBodyLength + 5;
+  // Last two bytes are the CRC; compute over payload only
+  uint16_t receivedCrc = (uint16_t)messageBody[messageBodyLength - 2] << 8 | messageBody[messageBodyLength - 1];
+
+  uint8_t payloadLength = messageBodyLength - 2;
+  uint8_t bufferLength = payloadLength + 5;
   uint8_t buf[bufferLength];
   buf[0] = functionCode;
   buf[1] = messageType->functionGroup;
   buf[2] = messageType->functionNumber;
   buf[3] = messageType->dataPointId >> 8;
   buf[4] = messageType->dataPointId & 0xFF;
-  memcpy(buf + 5, messageBody, messageBodyLength);
+  memcpy(buf + 5, messageBody, payloadLength);
 
   uint16_t calculatedCrc = HovalCrc::calcCrc(buf, bufferLength);
 
-  if (calculatedCrc != crc)
+  if (calculatedCrc != receivedCrc)
   {
-    logError("HovalMessage", "CRC validation failed. Expected: 0x%04X, Calculated: 0x%04X", crc, calculatedCrc);
+    logError("HovalMessage", "CRC validation failed. Expected: 0x%04X, Calculated: 0x%04X", receivedCrc, calculatedCrc);
     logHexDebug("HovalMessage", buf, bufferLength);
     return false;
   }
+
+  // Strip CRC bytes from body only after successful validation
+  crc = receivedCrc;
+  messageBodyLength = payloadLength;
   return true;
 }
 

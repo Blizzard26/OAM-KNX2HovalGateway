@@ -337,9 +337,7 @@ void HovalProtocolHandler::onSingleMessage(uint16_t sender, uint16_t target, uin
 
     uint8_t payloadLength = (uint8_t)bodyLength - SINGLE_MESSAGE_HEADER_LENGTH;
     HovalMessage* message = new HovalMessage(0, type, functionCode, sender, target, payloadLength);
-    // TODO this could be improved and moved to the constructor - or at least tho the message class
-    memcpy(message->messageBody, body + SINGLE_MESSAGE_HEADER_LENGTH, payloadLength);
-    message->messageBodyLength = payloadLength;
+    message->addToBody(body + SINGLE_MESSAGE_HEADER_LENGTH, payloadLength);
     processMessage(message);
     delete message;
   }
@@ -472,9 +470,7 @@ void HovalProtocolHandler::onMultiPartMessageStart(uint16_t sender, uint16_t tar
     // Initialize message body with maximum size (1 byte for first message + 8-1 bytes for remaining messages)
     uint8_t maxPayloadLength = FIRST_MESSAGE_MAX_BODY_LENGTH + (messageCount - 1) * FOLLOW_MESSAGE_MAX_BODY_LENGTH;
     HovalMessage* message = new HovalMessage(multiPartMessageId, type, functionCode, sender, target, maxPayloadLength);
-
-    memcpy(message->messageBody, body + MULTI_PART_MESSAGE_HEADER_LENGTH, FIRST_MESSAGE_MAX_BODY_LENGTH);
-    message->messageBodyLength = FIRST_MESSAGE_MAX_BODY_LENGTH;
+    message->addToBody(body + MULTI_PART_MESSAGE_HEADER_LENGTH, FIRST_MESSAGE_MAX_BODY_LENGTH);
 
     // Push message to LRU Stack
     pushToReceiveStack(message);
@@ -563,10 +559,8 @@ void HovalProtocolHandler::onMultiPartMessageCont(uint8_t messageIndex, bool las
     return;
   }
 
-  logTraceP("Offset: %u", offset);
   // Copy message body to message
-  memcpy(message->messageBody + offset, body + 1, payloadLength);
-  message->messageBodyLength += payloadLength;
+  message->addToBody(body + 1, payloadLength);
 
   if (lastMessage)
   {
@@ -577,10 +571,6 @@ void HovalProtocolHandler::onMultiPartMessageCont(uint8_t messageIndex, bool las
       delete message;
       return;
     }
-
-    // Last two bytes are some form of CRC
-    message->crc = (uint16_t)message->messageBody[message->messageBodyLength - 2] << 8 | message->messageBody[message->messageBodyLength - 1];
-    message->messageBodyLength -= 2;
 
     if (!message->validateCrc())
     {
@@ -669,8 +659,7 @@ bool HovalProtocolHandler::sendMessage(uint16_t sender, uint16_t target, HovalFu
   }
 
   HovalMessage* message = new HovalMessage(messageId++, type, functionCode, sender, target, bodyLength);
-  memcpy(message->messageBody, messageBody, bodyLength);
-  message->messageBodyLength = bodyLength;
+  message->addToBody(messageBody, bodyLength);
 
   logDebugP("Queueing: %u | fCode: %#02X | uType: %u, uId: %u | fGrp: %u, fNo: %u, dPId: %u", message->messageId, message->functionCode,
             message->messageType->unitType, message->senderId, message->messageType->functionGroup, message->messageType->functionNumber,
