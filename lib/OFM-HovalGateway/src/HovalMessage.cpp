@@ -20,6 +20,10 @@
 // clang-format on
 #endif
 
+static constexpr uint32_t pow10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
+
+#pragma region HovalMessage
+
 HovalMessage::HovalMessage(uint8_t _messageId, const HovalMessageType* _messageType, HovalFunctionCode _functionCode, uint16_t _senderId, uint16_t _targetId,
                            uint8_t _maxBodyLength)
     : messageId(_messageId), messageType(_messageType), functionCode(_functionCode), senderId(_senderId), targetId(_targetId), maxBodyLength(_maxBodyLength)
@@ -35,7 +39,7 @@ HovalMessage::~HovalMessage()
 {
   if (messageBody != nullptr)
   {
-    delete (messageBody);
+    delete[] messageBody;
   }
 
   if (messageType->decimals == DYNAMIC_MESSAGE_TYPE)
@@ -94,7 +98,8 @@ void HovalMessage::printBody(char* buf, uint8_t bufLen)
   break;
   case DataType::STRING:
     memset(buf, 0, bufLen);
-    memcpy(buf, messageBody, MIN(bufLen, messageBodyLength));
+    memcpy(buf, messageBody, MIN(bufLen - 1, messageBodyLength));
+    buf[MIN(bufLen - 1, messageBodyLength)] = '\0';
     break;
     /*  case DataType::ERRORTYPE:
       {
@@ -114,30 +119,21 @@ void HovalMessage::printBody(char* buf, uint8_t bufLen)
 float toFloat(uint16_t rawValue, uint8_t decimals)
 {
   float value = rawValue;
-  while (decimals-- > 0)
-  {
-    value /= 10.f;
-  }
+  value /= pow10[decimals];
   return value;
 }
 
 float toFloat(int16_t rawValue, uint8_t decimals)
 {
   float value = rawValue;
-  while (decimals-- > 0)
-  {
-    value /= 10.f;
-  }
+  value /= pow10[decimals];
   return value;
 }
 
 double toDouble(int64_t rawValue, uint8_t decimals)
 {
   double value = rawValue;
-  while (decimals-- > 0)
-  {
-    value /= 10.f;
-  }
+  value /= pow10[decimals];
   return value;
 }
 
@@ -198,7 +194,7 @@ uint16_t HovalMessage::u16Value() const
     logError("HovalMessage", "DataPointType missmatch");
     return UINT16_MAX;
   }
-  return littleEndianToUint16(messageBody);
+  return bigEndianToUint16(messageBody);
 }
 
 uint32_t HovalMessage::u32Value() const
@@ -208,7 +204,7 @@ uint32_t HovalMessage::u32Value() const
     logError("HovalMessage", "DataPointType missmatch");
     return UINT32_MAX;
   }
-  return littleEndianToUint32(messageBody);
+  return bigEndianToUint32(messageBody);
 }
 
 int8_t HovalMessage::s8Value() const
@@ -231,9 +227,9 @@ int64_t HovalMessage::s64Value() const
   if (messageBodyLength != 8)
   {
     logError("HovalMessage", "DataPointType missmatch");
-    return INT32_MIN;
+    return INT64_MAX;
   }
-  return littleEndianToInt64(messageBody);
+  return bigEndianToInt64(messageBody);
 }
 
 uint8_t HovalMessage::list() const
@@ -244,7 +240,7 @@ uint8_t HovalMessage::list() const
 time_t convertToUnixTime(uint16_t date, uint16_t time)
 {
   // (date - (1.1.1900 - 1.1.1970)) convert to seconds + time in seconds
-  return ((uint32_t)date - 25567) * 86400u + time * 60;
+  return ((uint32_t)date - 25568) * 86400u + time * 60;
 }
 
 ErrorMessage HovalMessage::errorMessage() const
@@ -268,8 +264,8 @@ ErrorMessage HovalMessage::errorMessage() const
   13  end_time - high byte
   14  end_date - low byte date since 01.01.1900
   15  end_date - high byte
-  16  crc
-  17  crc
+  16  crc - not included in messageBody
+  17  crc - not included in messageBody
   */
 
   if (messageBodyLength != 16)
@@ -305,12 +301,12 @@ ErrorMessage HovalMessage::errorMessage() const
   }
 
   errorMessage.error_type = mapErrorType(messageBody[0]);
-  errorMessage.error_code = bigEndianToUint16(messageBody + 2);
-  errorMessage.source = bigEndianToUint16(messageBody + 4);
+  errorMessage.error_code = littleEndianToUint16(messageBody + 2);
+  errorMessage.source = littleEndianToUint16(messageBody + 4);
   errorMessage.function_group = messageBody[6];
   errorMessage.function_number = messageBody[7];
-  errorMessage.appearance_time = convertToUnixTime(bigEndianToUint16(messageBody + 10) - 1, bigEndianToUint16(messageBody + 8));
-  errorMessage.disappear_time = convertToUnixTime(bigEndianToUint16(messageBody + 14) - 1, bigEndianToUint16(messageBody + 12));
+  errorMessage.appearance_time = convertToUnixTime(littleEndianToUint16(messageBody + 10), littleEndianToUint16(messageBody + 8));
+  errorMessage.disappear_time = convertToUnixTime(littleEndianToUint16(messageBody + 14), littleEndianToUint16(messageBody + 12));
   return errorMessage;
 }
 
@@ -333,23 +329,25 @@ char HovalMessage::mapErrorType(uint8_t errorType) const
   return (char)errorType;
 }
 
-constexpr uint16_t HovalMessage::bigEndianToUint16(const uint8_t* body)
+constexpr uint16_t HovalMessage::littleEndianToUint16(const uint8_t* body)
 {
   return body[0] | (uint16_t)body[1] << 8;
 }
 
-constexpr uint16_t HovalMessage::littleEndianToUint16(const uint8_t* body)
+constexpr uint16_t HovalMessage::bigEndianToUint16(const uint8_t* body)
 {
   return (uint16_t)body[0] << 8 | body[1];
 }
 
-constexpr uint32_t HovalMessage::littleEndianToUint32(const uint8_t* body)
+constexpr uint32_t HovalMessage::bigEndianToUint32(const uint8_t* body)
 {
   return (uint32_t)body[0] << 24 | (uint32_t)body[1] << 16 | (uint32_t)body[2] << 8 | body[3];
 }
 
-constexpr int64_t HovalMessage::littleEndianToInt64(const uint8_t* body)
+constexpr int64_t HovalMessage::bigEndianToInt64(const uint8_t* body)
 {
   return (int64_t)body[0] << 56 | (int64_t)body[1] << 48 | (int64_t)body[2] << 40 | (int64_t)body[3] << 32 | (int64_t)body[4] << 24 | (int64_t)body[5] << 16 |
          (int64_t)body[6] << 8 | body[7];
 }
+
+#pragma endregion
