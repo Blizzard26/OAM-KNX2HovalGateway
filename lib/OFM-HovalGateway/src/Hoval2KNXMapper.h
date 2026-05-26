@@ -16,14 +16,14 @@ struct HovalMessageTransformer
   const uint16_t comObject = 0;
   // const float factor = 1.f;
   const Dpt dpt;
-  KNXValue (*transformer)(HovalMessage*);
+  KNXValue (*const transformer)(HovalMessage*);
   uint32_t lastSeen = 0;
   uint32_t lastSend = 0;
 
 private:
-  bool (*sendOnChangeFunc)();
-  uint32_t (*sendIntervalMsFunc)(HovalMessage*);
-  bool (*activeFunc)();
+  bool (*const sendOnChangeFunc)();
+  uint32_t (*const sendIntervalMsFunc)(HovalMessage*);
+  bool (*const activeFunc)();
   std::string logPrefix();
 
 public:
