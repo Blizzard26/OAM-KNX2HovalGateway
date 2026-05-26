@@ -5,7 +5,7 @@
 #include <mcp2515_can_dfs.h>
 #include <string.h>
 
-#define MAX_SEND_ERROR_CNT 10
+static const uint8_t MAX_SEND_ERROR_CNT = 10;
 
 static const uint8_t MESSAGE_TYPE_OFFSET = 22;
 static const uint8_t MESSAGE_TYPE_MASK = 0b11;
@@ -137,7 +137,12 @@ bool HovalProtocolHandler::trySendCANMessage(uint32_t address, uint8_t* body, ui
     logIndentDown();
   }
   // Don't wait for sent. Timeout in mcp2515_can.cpp is too short and will result in CAN_SENDMSGTIMEOUT
-  uint8_t result = this->canBus->sendMsgBuf(address, true, false, bodyLength, body, false);
+  uint8_t result = this->canBus->trySendMsgBuf(address, true, false, bodyLength, body, MCP_N_TXBUFFERS);
+  if (result == CAN_FAILTX)
+  {
+    // No available buffer for send. Try again later.
+    return false;
+  }
   if (result != CAN_OK)
     logErrorP("Send Failed: %u", result);
 
@@ -658,6 +663,7 @@ bool HovalProtocolHandler::sendMessage(uint16_t sender, uint16_t target, HovalFu
 {
   if (sendBuffer.isFull())
   {
+    logErrorP("SendBuffer Full");
     // No more space in Ringbuffer
     return false;
   }
@@ -665,6 +671,10 @@ bool HovalProtocolHandler::sendMessage(uint16_t sender, uint16_t target, HovalFu
   HovalMessage* message = new HovalMessage(messageId++, type, functionCode, sender, target, bodyLength);
   memcpy(message->messageBody, messageBody, bodyLength);
   message->messageBodyLength = bodyLength;
+
+  logDebugP("Queueing: %u | fCode: %#02X | uType: %u, uId: %u | fGrp: %u, fNo: %u, dPId: %u", message->messageId, message->functionCode,
+            message->messageType->unitType, message->senderId, message->messageType->functionGroup, message->messageType->functionNumber,
+            message->messageType->dataPointId);
 
   sendBuffer.push(message);
 
@@ -699,126 +709,77 @@ bool HovalProtocolHandler::doSend()
   }
 
   HovalMessage* message = *(sendBuffer.peek());
-  uint8_t bodyLength = message->messageBodyLength;
 
-  if (bodyLength <= (MAX_MESSAGE_LENGTH - SINGLE_MESSAGE_HEADER_LENGTH))
+  if (message->messageBodyLength <= (MAX_MESSAGE_LENGTH - SINGLE_MESSAGE_HEADER_LENGTH))
   {
     logTraceP("Sending Single");
     // Single Message
-    uint32_t address = buildAddress(0x1F, true, true, message->senderId, message->targetId);
+    sendSingleMessage(message);
+  }
+  else
+  {
+    // Calculating of CRC is currently unknown.
+    logErrorP("Sending of Multi-Part Messages is currently not supported.");
+    delete *(sendBuffer.pop());
+  }
+  return true;
+}
 
-    uint8_t body[MAX_MESSAGE_LENGTH];
-    memset(body, 0, MAX_MESSAGE_LENGTH);
-    // Bits 7-3: Number of message of a multi-part message (including start and end message).
-    // In case of single message message count is 0 (instead of 1).
-    // Bits 3 -1: Usage unknown. Currently always 0b001
-    body[0] = 0b001;
-    body[1] = (uint8_t)message->functionCode;
-    body[2] = message->messageType->functionGroup;
-    body[3] = message->messageType->functionNumber;
-    body[4] = (message->messageType->dataPointId >> 8) & 0xFF;
-    body[5] = message->messageType->dataPointId & 0xFF;
+void HovalProtocolHandler::sendSingleMessage(HovalMessage* message)
+{
+  uint32_t address = buildAddress(0x1F, true, true, message->senderId, message->targetId);
 
-    // two bytes message body left
-    if (bodyLength > 0)
-    {
-      body[6] = message->messageBody[0];
-    }
-    if (bodyLength > 1)
-    {
-      body[7] = message->messageBody[1];
-    }
-    uint8_t messageLength = SINGLE_MESSAGE_HEADER_LENGTH + bodyLength;
-    if (trySendCANMessage(address, body, messageLength))
+  uint8_t bodyLength = message->messageBodyLength;
+  uint8_t messageLength = SINGLE_MESSAGE_HEADER_LENGTH + bodyLength;
+
+  uint8_t body[MAX_MESSAGE_LENGTH] = {0};
+
+  // Bits 7-3: Number of message of a multi-part message (including start and end message).
+  // In case of single message message count is 0 (instead of 1).
+  // Bits 3 -1: Usage unknown. Currently always 0b001
+  body[0] = 0b001;
+  body[1] = (uint8_t)message->functionCode;
+  body[2] = message->messageType->functionGroup;
+  body[3] = message->messageType->functionNumber;
+  body[4] = (message->messageType->dataPointId >> 8) & 0xFF;
+  body[5] = message->messageType->dataPointId & 0xFF;
+
+  // two bytes message body left
+  if (bodyLength > 0)
+  {
+    body[6] = message->messageBody[0];
+  }
+  if (bodyLength > 1)
+  {
+    body[7] = message->messageBody[1];
+  }
+
+  if (message->functionCode == HovalFunctionCode::WRITE_REQUEST)
+  {
+    logInfoP("Sending: address: %#02X", address);
+    logIndentUp();
+    logHexInfoP(body, messageLength);
+    logIndentDown();
+  }
+
+  // Temporary READ_REQUEST only until write request is supported. This is to avoid sending messages that we can't handle yet.
+  boolean success = trySendCANMessage(address, body, messageLength);
+
+  if (success)
+  {
+    delete *(sendBuffer.pop());
+    sendErrorCnt = 0;
+  }
+  else
+  {
+    logErrorP("Error sending message");
+    sendErrorCnt++;
+    if (sendErrorCnt > MAX_SEND_ERROR_CNT)
     {
       delete *(sendBuffer.pop());
       sendErrorCnt = 0;
     }
-    else
-    {
-      sendErrorCnt++;
-      if (sendErrorCnt > MAX_SEND_ERROR_CNT)
-      {
-        delete *(sendBuffer.pop());
-        sendErrorCnt = 0;
-      }
-    }
   }
-  else
-  {
-    // First message takes 1 byte, subsequent messages take 7 bytes
-    uint8_t followMessageBodyLength = bodyLength - MULTI_PART_MESSAGE_HEADER_LENGTH;
-    uint8_t messageCount =
-        followMessageBodyLength / FOLLOW_MESSAGE_MAX_BODY_LENGTH + ((followMessageBodyLength % FOLLOW_MESSAGE_MAX_BODY_LENGTH != 0) ? 1 : 0) + 1;
-    if (sendOffset == 0)
-    {
-      uint32_t address = buildAddress(0x1F, true, false, message->senderId, message->targetId);
-
-      uint8_t body[MAX_MESSAGE_LENGTH];
-      memset(body, 0, MAX_MESSAGE_LENGTH);
-      // Bits 7-3: Number of message of a multi-part message (including start and end message).
-      // In case of single message message count is 0 (instead of 1).
-      // Bits 3 -1: Usage unknown. Currently always 0b001
-      body[0] = messageCount << 3 | 0b001;
-      body[1] = message->messageId;
-      body[2] = (uint8_t)message->functionCode;
-      body[3] = message->messageType->functionGroup;
-      body[4] = message->messageType->functionNumber;
-      body[5] = (message->messageType->dataPointId >> 8) & 0xFF;
-      body[6] = message->messageType->dataPointId & 0xFF;
-      body[7] = message->messageBody[0];
-
-      if (trySendCANMessage(address, body, MAX_MESSAGE_LENGTH))
-      {
-        sendErrorCnt = 0;
-        sendOffset = 1;
-      }
-      else
-      {
-        sendErrorCnt++;
-        if (sendErrorCnt > MAX_SEND_ERROR_CNT)
-        {
-          delete *(sendBuffer.pop());
-          sendErrorCnt = 0;
-        }
-      }
-    }
-    else
-    {
-      uint8_t messageIndex = (sendOffset - 1) / FOLLOW_MESSAGE_MAX_BODY_LENGTH;
-
-      uint32_t address = buildAddress(messageIndex, false, messageIndex == messageCount, message->senderId, message->targetId);
-
-      uint8_t body[MAX_MESSAGE_LENGTH];
-      memset(body, 0, MAX_MESSAGE_LENGTH);
-      body[0] = messageId;
-      // 7 bytes message body left
-      uint8_t payloadLength = min(FOLLOW_MESSAGE_MAX_BODY_LENGTH, bodyLength - sendOffset);
-      memcpy(body + FOLLOW_MESSAGE_HEADER_LENGTH, message->messageBody + sendOffset, payloadLength);
-      uint8_t messageLength = FOLLOW_MESSAGE_HEADER_LENGTH + payloadLength;
-
-      if (trySendCANMessage(address, body, messageLength))
-      {
-        sendErrorCnt = 0;
-        sendOffset += payloadLength;
-
-        if (sendOffset >= message->messageBodyLength)
-        {
-          delete *(sendBuffer.pop());
-        }
-      }
-      else
-      {
-        sendErrorCnt++;
-        if (sendErrorCnt > MAX_SEND_ERROR_CNT)
-        {
-          delete *(sendBuffer.pop());
-          sendErrorCnt = 0;
-        }
-      }
-    }
-  }
-  return true;
 }
 
 uint32_t HovalProtocolHandler::buildAddress(uint8_t messageIndex, bool firstMessage, bool lastMessage, uint16_t sender, uint16_t target)
@@ -834,13 +795,80 @@ void HovalProtocolHandler::requestUpdate(uint16_t sender, uint16_t target, const
   sendMessage(sender, target, HovalFunctionCode::READ_REQUEST, type, nullptr, 0);
 }
 
-void HovalProtocolHandler::write(uint16_t sender, uint16_t target, const HovalMessageType* type, uint8_t value)
+static inline uint8_t checkBounds(uint8_t value, int32_t minValue, int32_t maxValue)
 {
-  sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, &value, 1);
+  if (minValue != INT32_MIN && value < minValue)
+    return minValue < 0 ? 0 : (uint8_t)minValue;
+  if (maxValue != INT32_MAX && value > maxValue)
+    return maxValue > UINT8_MAX ? UINT8_MAX : (uint8_t)maxValue;
+  return value;
 }
 
-void HovalProtocolHandler::write(uint16_t sender, uint16_t target, const HovalMessageType* type, uint16_t value)
+static inline int8_t checkBounds(int8_t value, int32_t minValue, int32_t maxValue)
 {
-  // TODO: Might need to invert bytes?
-  sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, (uint8_t*)&value, 2);
+  if (minValue != INT32_MIN && value < minValue)
+    return minValue < INT8_MIN ? INT8_MIN : (int8_t)minValue;
+  if (maxValue != INT32_MAX && value > maxValue)
+    return maxValue > INT8_MAX ? INT8_MAX : (int8_t)maxValue;
+  return value;
+}
+
+static inline uint16_t checkBounds(uint16_t value, int32_t minValue, int32_t maxValue)
+{
+  if (minValue != INT32_MIN && value < minValue)
+    return minValue < 0 ? 0 : (uint16_t)minValue;
+  if (maxValue != INT32_MAX && value > maxValue)
+    return maxValue > UINT16_MAX ? UINT16_MAX : (uint16_t)maxValue;
+  return value;
+}
+
+static inline int16_t checkBounds(int16_t value, int32_t minValue, int32_t maxValue)
+{
+  if (minValue != INT32_MIN && value < minValue)
+    return minValue < 0 ? INT16_MIN : (int16_t)minValue;
+  if (maxValue != INT32_MAX && value > maxValue)
+    return maxValue > INT16_MAX ? INT16_MAX : (int16_t)maxValue;
+  return value;
+}
+
+void HovalProtocolHandler::write(uint16_t sender, uint16_t target, const HovalMessageType* type, HovalValue& value)
+{
+
+  switch (type->rawType)
+  {
+  case HovalDataType::U8: {
+    uint8_t v = checkBounds(value.u8Value(type->decimals), type->minValue, type->maxValue);
+    sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, &v, sizeof(v));
+    break;
+  }
+  case HovalDataType::U16: {
+    uint16_t v16 = checkBounds(value.u16Value(type->decimals), type->minValue, type->maxValue);
+    uint8_t buffer[2] = {(uint8_t)(v16 >> 8), (uint8_t)(v16 & 0xFF)};
+    sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, buffer, sizeof(buffer));
+    break;
+  }
+  case HovalDataType::S8: {
+    int8_t sv = checkBounds(value.s8Value(type->decimals), type->minValue, type->maxValue);
+    uint8_t buffer = *(uint8_t*)&sv;  // or memcpy
+    sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, &buffer, sizeof(buffer));
+    break;
+  }
+  case HovalDataType::S16: {
+    int16_t sv16 = checkBounds(value.s16Value(type->decimals), type->minValue, type->maxValue);
+    uint8_t buffer[2] = {(uint8_t)(sv16 >> 8), (uint8_t)(sv16 & 0xFF)};
+    sendMessage(sender, target, HovalFunctionCode::WRITE_REQUEST, type, buffer, sizeof(buffer));
+    break;
+  }
+
+  case HovalDataType::U32:
+  case HovalDataType::S32:
+  case HovalDataType::S64:
+  case HovalDataType::RAW:
+    // Currently not supported as it requires a multi-part message
+    logErrorP("DataType not supported yet");
+    break;
+  default:
+    logErrorP("Unknown DataType");
+    break;
+  }
 }

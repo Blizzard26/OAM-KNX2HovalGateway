@@ -94,6 +94,7 @@ class HovalProtocolHandler
   void onHovalEvent(HovalMessage* message);
 
   inline uint32_t buildAddress(uint8_t messageIndex, bool firstMessage, bool lastMessage, uint16_t sender, uint16_t target);
+  inline void sendSingleMessage(HovalMessage* message);
 
   inline bool doSend();
 
@@ -124,8 +125,7 @@ public:
   bool sendMessage(uint16_t sender, uint16_t target, HovalFunctionCode functionCode, const HovalMessageType* type, uint8_t* body, uint8_t bodyLength);
 
   void requestUpdate(uint16_t sender, uint16_t target, const HovalMessageType* type);
-  void write(uint16_t sender, uint16_t target, const HovalMessageType* type, uint8_t value);
-  void write(uint16_t sender, uint16_t target, const HovalMessageType* type, uint16_t value);
+  void write(uint16_t sender, uint16_t target, const HovalMessageType* type, HovalValue& value);
 
   uint8_t getStackCount();
   uint8_t getNumberOfMessageFilters();

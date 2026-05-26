@@ -38,7 +38,7 @@ Writable: Yes
 unit: h
 Commentary: PartyModus
 */
-const HovalMessageType PartyMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 2010, HovalDataType::U16, 1, DataType::FLOAT);
+const HovalMessageType PartyMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 2010, HovalDataType::U16, 1, DataType::FLOAT, 0, 240);
 // Originally Decimal: 1
 
 /**
@@ -52,7 +52,7 @@ Writable: Yes
 unit: h
 Commentary: PauseModus
 */
-const HovalMessageType PauseMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 2018, HovalDataType::U16, 1, DataType::FLOAT);
+const HovalMessageType PauseMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 2018, HovalDataType::U16, 1, DataType::FLOAT, 0, 240);
 // Originally Decimal: 1
 
 /**
@@ -146,7 +146,7 @@ Commentary: Luftqualität Regulierung (Statusangabe ob Luftqualitätsregelung ei
 values: 0=Gerät aus, z.B. Standbybetrieb; 1=Normaler Lüftungsbetrieb; 2=VOC Modus aktiv; 3=Feuchtigkeitsmodus aktiv; 4=Frostschutz aktiv; 5=CoolVet aktiv;
 6=Fehlerzustand
 */
-const HovalMessageType AirQualityControl(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 39600, HovalDataType::U8, 0, DataType::LIST);
+const HovalMessageType AirQualityControl(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 39600, HovalDataType::U8, 0, DataType::LIST, 0, 6);
 
 /**
 TypeName: U8
@@ -171,9 +171,9 @@ const HovalMessageType VentilationControlStatus(HOVAL_HOMEVENT, HOVAL_FUNCTION_G
     Writable: Yes
     unit:
     Commentary: Betriebswahl Lüftung (z.B. Woche 1 / 2, Konstant, Standby)
-    Values: 0=Standby, 1=Woche 1, 2=Woche 2, 4=Konstantbetrieb, Sollwert 40651, 5=Sparbetrieb, Sollwert 40686
+    Values: 0=Standby, 1=Woche 1, 2=Woche 2, 4=Konstantbetrieb (Sollwert in 40651), 5=Sparbetrieb (Sollwert in 40686)
     */
-const HovalMessageType OperatingMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40650, HovalDataType::U8, 0, DataType::LIST);
+const HovalMessageType OperatingMode(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40650, HovalDataType::U8, 0, DataType::LIST, 0, 5);
 
 /**
 TypeName: U8
@@ -186,7 +186,7 @@ Writable: Yes
 unit: %
 Commentary: Normal-Lüftungsmodulation (Luftmenge bei "Konstant"-Betrieb)
 */
-const HovalMessageType NormalModulation(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40651, HovalDataType::U8, 0, DataType::UINT8);
+const HovalMessageType NormalModulation(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40651, HovalDataType::U8, 0, DataType::UINT8, 15, 100);
 
 /**
 TypeName: U8
@@ -199,7 +199,7 @@ Writable: Yes
 unit: %
 Commentary: Spar-Lüftungsmodulation (Luftmenge bei Sparbetrieb)
 */
-const HovalMessageType EconomyModulation(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40686, HovalDataType::U8, 0, DataType::UINT8);
+const HovalMessageType EconomyModulation(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40686, HovalDataType::U8, 0, DataType::UINT8, 15, 100);
 
 /**
 TypeName: U8
@@ -212,10 +212,10 @@ Writable: Yes
 unit: %
 Commentary: Feuchte Sollwert (Am Bediengerät eingestellte maximale rel. Luftfeuchte)
 */
-const HovalMessageType HumiditySetpoint(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40687, HovalDataType::U8, 0, DataType::UINT8);
+const HovalMessageType HumiditySetpoint(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40687, HovalDataType::U8, 0, DataType::UINT8, 30, 65);
 
 //??
-const HovalMessageType PartyPauseValue(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40714, HovalDataType::U8, 0, DataType::UINT8);
+const HovalMessageType PartyPauseValue(HOVAL_HOMEVENT, HOVAL_FUNCTION_GROUP_VENTILATION, 0, 40714, HovalDataType::U8, 0, DataType::UINT8, 15, 100);
 
 const HovalMessageType VentilatorExhaustPWM(HOVAL_HOMEVENT, 0, 0, 41600, HovalDataType::U8, 0, DataType::UINT8);
 const HovalMessageType VentilatorOutdoorPWM(HOVAL_HOMEVENT, 0, 0, 41601, HovalDataType::U8, 0, DataType::UINT8);

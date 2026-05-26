@@ -215,7 +215,13 @@ inline bool Knx2HovalGatewayModule::connect()
 }
 
 void Knx2HovalGatewayModule::processInputKo(GroupObject& ko)
-{}
+{
+  if (ko.asap() >= HOV_Koglobal_online && ko.asap() < HOV_Koglobal_online + 100)
+  {
+    logTraceP("Received update for KO %u, %u", ko.asap(), ko.commFlag());
+    hoval2KNX.sendToHovalBus(ko);
+  }
+}
 
 const std::string Knx2HovalGatewayModule::name()
 {

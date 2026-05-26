@@ -344,6 +344,46 @@ char HovalMessage::mapErrorType(uint8_t errorType) const
   }
 }
 
+HovalMessage::operator uint8_t() const
+{
+  return u8Value();
+}
+
+HovalMessage::operator uint16_t() const
+{
+  return u16Value();
+}
+
+HovalMessage::operator uint32_t() const
+{
+  return u32Value();
+}
+
+HovalMessage::operator int8_t() const
+{
+  return s8Value();
+}
+
+HovalMessage::operator int16_t() const
+{
+  return s16Value();
+}
+
+HovalMessage::operator int32_t() const
+{
+  return s32Value();
+}
+
+HovalMessage::operator int64_t() const
+{
+  return s64Value();
+}
+
+HovalMessage::operator ErrorMessage() const
+{
+  return errorMessage();
+}
+
 constexpr uint16_t HovalMessage::littleEndianToUint16(const uint8_t* body)
 {
   return body[0] | (uint16_t)body[1] << 8;
@@ -363,6 +403,124 @@ constexpr int64_t HovalMessage::bigEndianToInt64(const uint8_t* body)
 {
   return (int64_t)body[0] << 56 | (int64_t)body[1] << 48 | (int64_t)body[2] << 40 | (int64_t)body[3] << 32 | (int64_t)body[4] << 24 | (int64_t)body[5] << 16 |
          (int64_t)body[6] << 8 | body[7];
+}
+
+#pragma endregion
+
+#pragma region HovalValue
+
+HovalValue::HovalValue(uint8_t _value, DataType _type) : type(_type)
+{
+  value.ucharValue = _value;
+}
+
+uint32_t scaleUnsigned(uint32_t value, uint8_t decimals)
+{
+  uint64_t scaledValue = value;
+  scaledValue *= pow10[decimals];
+  return (uint32_t)MIN(scaledValue, UINT32_MAX);
+}
+
+int32_t scaleSigned(int32_t value, uint8_t decimals)
+{
+  int64_t scaledValue = value;
+  scaledValue *= pow10[decimals];
+  return (int32_t)MAX(MIN(scaledValue, INT32_MAX), INT32_MIN);
+}
+
+int32_t scaleFloat(double value, uint8_t decimals)
+{
+  double scaledValue = value;
+  scaledValue *= pow10[decimals];
+  return (int32_t)round(scaledValue);
+}
+
+uint8_t HovalValue::u8Value(uint8_t decimals) const
+{
+  switch (type)
+  {
+  case DataType::BOOL:
+    return scaleUnsigned(value.boolValue ? 1 : 0, decimals);
+  case DataType::INT8:
+    return scaleUnsigned(MAX(0, value.charValue), decimals);
+  case DataType::UINT8:
+  case DataType::LIST:
+    return scaleUnsigned(value.ucharValue, decimals);
+  case DataType::FLOAT:
+  case DataType::DOUBLE:
+    return MIN(MAX(scaleFloat(value.floatValue, decimals), 0), UINT8_MAX);
+  default:
+    logError("HovalValue", "DataType missmatch");
+    return 0;
+  }
+}
+
+int8_t HovalValue::s8Value(uint8_t decimals) const
+{
+  switch (type)
+  {
+  case DataType::BOOL:
+    return scaleUnsigned(value.boolValue ? 1 : 0, decimals);
+  case DataType::INT8:
+    return scaleSigned(value.charValue, decimals);
+  case DataType::UINT8:
+  case DataType::LIST:
+    return scaleUnsigned(value.ucharValue, decimals);
+  case DataType::FLOAT:
+  case DataType::DOUBLE:
+    return MIN(MAX(scaleFloat(value.floatValue, decimals), INT8_MIN), INT8_MAX);
+  default:
+    logError("HovalValue", "DataType missmatch");
+    return 0;
+  }
+}
+
+uint16_t HovalValue::u16Value(uint8_t decimals) const
+{
+  switch (type)
+  {
+  case DataType::BOOL:
+    return scaleUnsigned(value.boolValue ? 1 : 0, decimals);
+  case DataType::INT8:
+    return scaleUnsigned(MAX(0, value.charValue), decimals);
+  case DataType::UINT8:
+  case DataType::LIST:
+    return scaleUnsigned(value.ucharValue, decimals);
+  case DataType::UINT16:
+    return scaleUnsigned(value.ushortValue, decimals);
+  case DataType::INT16:
+    return scaleUnsigned(MAX(0, value.shortValue), decimals);
+  case DataType::FLOAT:
+  case DataType::DOUBLE:
+    return MIN(MAX(scaleFloat(value.floatValue, decimals), 0), UINT16_MAX);
+  default:
+    logError("HovalValue", "DataType missmatch");
+    return 0;
+  }
+}
+
+int16_t HovalValue::s16Value(uint8_t decimals) const
+{
+  switch (type)
+  {
+  case DataType::BOOL:
+    return scaleUnsigned(value.boolValue ? 1 : 0, decimals);
+  case DataType::INT8:
+    return scaleSigned(value.charValue, decimals);
+  case DataType::UINT8:
+  case DataType::LIST:
+    return scaleUnsigned(value.ucharValue, decimals);
+  case DataType::INT16:
+    return scaleSigned(value.shortValue, decimals);
+  case DataType::UINT16:
+    return scaleUnsigned(value.ushortValue, decimals);
+  case DataType::FLOAT:
+  case DataType::DOUBLE:
+    return MIN(MAX(scaleFloat(value.floatValue, decimals), 0), UINT16_MAX);
+  default:
+    logError("HovalValue", "DataType missmatch");
+    return 0;
+  }
 }
 
 #pragma endregion
