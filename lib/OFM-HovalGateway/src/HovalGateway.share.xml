@@ -150,6 +150,7 @@
 
               <ComObject Id="%AID%_O-%TT%00096" Name="general_active_error_error" Text="Allgemein" Number="96" FunctionText="Aktiver Fehler" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
               <ComObject Id="%AID%_O-%TT%00097" Name="general_active_error_warning" Text="Allgemein" Number="97" FunctionText="Aktive Warnung" ObjectSize="1 Byte" ReadFlag="Enabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-6-20" />
+              <!-- If you add more KOs here, make sure to update Knx2HovalGatewayModule::processInputKo accordingly -->
             </ComObjectTable>
             <ComObjectRefs>
               <ComObjectRef Id="%AID%_O-%TT%00001_R-%TT%0000101" RefId="%AID%_O-%TT%00001" />

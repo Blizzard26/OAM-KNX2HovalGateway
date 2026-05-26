@@ -58,10 +58,13 @@ struct HovalMessageType
 
   const DataType dataType;
 
+  const int32_t minValue;
+  const int32_t maxValue;
+
   HovalMessageType(uint16_t _unitType, uint8_t _functionGroup, uint8_t _functionNumber, uint16_t _dataPointId, HovalDataType _rawType, uint8_t _decimals,
-                   DataType _dataType)
+                   DataType _dataType, int32_t _minValue = INT32_MIN, int32_t _maxValue = INT32_MAX)
       : unitType(_unitType), functionGroup(_functionGroup), functionNumber(_functionNumber), dataPointId(_dataPointId), rawType(_rawType), decimals(_decimals),
-        dataType(_dataType)
+        dataType(_dataType), minValue(_minValue), maxValue(_maxValue)
   {}
 
 private:
@@ -109,9 +112,42 @@ enum HovalFunctionCode
   READ_ERROR = 0x56,    // Fehler beim Lesen (z.B. Falls Sensor für Lesen nicht vorhanden)
   UNKNOWN5 = 0x61,      // Alle 7s
   DISPLAY_TEXT = 0x62,  // Multi-Multi-Part Nachrichten?
-  UNKNOWN6 = 0x74,      // Alle 5s (Funktionsgruppe z�hlt von 0-4, Muster wiederholt sich alle 25s)
   UNKNOWN6 = 0x74,      // Alle 5s (Funktionsgruppe zählt von 0-4, Muster wiederholt sich alle 25s)
 };
+
+struct HovalValue
+{
+public:
+  HovalValue(uint8_t value, DataType type = DataType::UINT8);
+  HovalValue(uint16_t _value) : type(DataType::UINT16) { value.ushortValue = _value; }
+
+  HovalValue(float _value) : type(DataType::FLOAT) { value.floatValue = _value; }
+
+  uint8_t u8Value(uint8_t decimals) const;
+  uint16_t u16Value(uint8_t decimals) const;
+  int8_t s8Value(uint8_t decimals) const;
+  int16_t s16Value(uint8_t decimals) const;
+
+private:
+  union Value
+  {
+    bool boolValue;
+    uint8_t ucharValue;
+    uint16_t ushortValue;
+    //uint32_t uintValue;
+    //uint64_t ulongValue;
+    int8_t charValue;
+    int16_t shortValue;
+    //int32_t intValue;
+    //int64_t longValue;
+    float floatValue;
+    double doubleValue;
+    //const char* stringValue;
+    //struct tm timeValue;
+  };
+
+  DataType type;
+  Value value;
 };
 
 struct HovalMessage
@@ -156,6 +192,15 @@ struct HovalMessage
   /* Raw String */
   // byte* raw();
   ErrorMessage errorMessage() const;
+
+  operator uint8_t() const;
+  operator uint16_t() const;
+  operator uint32_t() const;
+  operator int8_t() const;
+  operator int16_t() const;
+  operator int32_t() const;
+  operator int64_t() const;
+  operator ErrorMessage() const;
 
 private:
   // Disable copy constructor

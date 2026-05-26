@@ -7,6 +7,7 @@
 
 #include "HovalProtocolDecoder.h"
 #include <knx/dpt.h>
+#include <knx/group_object.h>
 #include <knx/knx_value.h>
 
 struct HovalMessageTransformer
@@ -17,10 +18,14 @@ struct HovalMessageTransformer
   // const float factor = 1.f;
   const Dpt dpt;
   KNXValue (*const transformer)(HovalMessage*);
+  HovalValue (*const inverseTranformer)(KNXValue& value);
   uint32_t lastSeen = 0;
   uint32_t lastSend = 0;
 
 private:
+  uint8_t* lastValue = nullptr; // Last encoded KNX value received from Hoval (max 16 bytes)
+  uint8_t sizeInMemory;
+  bool lastValueInitialized = false; // Flag to indicate if lastValue has been initialized
   bool (*const sendOnChangeFunc)();
   uint32_t (*const sendIntervalMsFunc)(HovalMessage*);
   bool (*const activeFunc)();
@@ -33,16 +38,33 @@ public:
   /// @param _comObject KNX Comm Object index this transformer applies to
   /// @param _dpt Knx Data Point Type resulting from the transformation
   /// @param _transformer Function to transform HovalMessage to KNXValue
+  HovalMessageTransformer(const HovalMessageType* _type, uint8_t _comObject, Dpt _dpt, KNXValue (*_transformer)(HovalMessage*),
+                          HovalValue (*_inverseTranformer)(KNXValue&), bool (*_sendOnChange)(), uint32_t (*_sendIntervalMs)(HovalMessage*),
+                          bool (*_activeFunc)() = nullptr)
+      : type(_type), comObject(_comObject), dpt(_dpt), transformer(_transformer), sendOnChangeFunc(_sendOnChange), sendIntervalMsFunc(_sendIntervalMs),
+        activeFunc(_activeFunc), inverseTranformer(_inverseTranformer)
+  {
+    uint8_t dataLength = dpt.dataLength();
+    sizeInMemory = (dpt.mainGroup == 16) ? dataLength + 1 : dataLength; // Initialize sizeInMemory
+    lastValue = new uint8_t[sizeInMemory]();                            // Initialize lastValue with the correct size
+  }
+
   HovalMessageTransformer(const HovalMessageType* _type, uint8_t _comObject, Dpt _dpt, KNXValue (*_transformer)(HovalMessage*), bool (*_sendOnChange)(),
                           uint32_t (*_sendIntervalMs)(HovalMessage*), bool (*_activeFunc)() = nullptr)
-      : type(_type), comObject(_comObject), dpt(_dpt), transformer(_transformer), sendOnChangeFunc(_sendOnChange), sendIntervalMsFunc(_sendIntervalMs),
-        activeFunc(_activeFunc)
+      : HovalMessageTransformer(_type, _comObject, _dpt, _transformer, nullptr, _sendOnChange, _sendIntervalMs, _activeFunc)
   {}
+
+  ~HovalMessageTransformer()
+  {
+    delete[] lastValue;
+  }
 
   KNXValue transform(HovalMessage* message);
   bool active();
   bool sendOnChange();
   uint32_t sendIntervalMs(HovalMessage* message);
+  void setLastValue(const KNXValue& value);
+  bool valueChanged(const KNXValue& value) const;
 };
 
 class Hoval2KNXMapper : public IHovalEventHandler
@@ -64,8 +86,7 @@ private:
 
   void internalSendToKnx(HovalMessage* message, HovalMessageTransformer* messageProcessing);
 
-  void internalSendToHoval(HovalMessageTransformer* messageProcessing, uint8_t value);
-  void internalSendToHoval(HovalMessageTransformer* messageProcessing, uint16_t value);
+  void internalSendToHoval(KNXValue& value, HovalMessageTransformer* messageProcessing);
   void requestUpdate(const HovalMessageType* type);
 
   std::string logPrefix() { return "Hoval2KNXMapper"; }
@@ -100,7 +121,7 @@ public:
   /// @tparam T Type of the value to be send. Supported types: uint8_t, uint16_t
   /// @param comObjIndex Index of the KNX Comm-Object to send the message to
   /// @param value value to be send.
-  template <typename T> void sendToHovalBus(uint8_t comObjIndex, T value);
+  void sendToHovalBus(GroupObject& ko);
 
   void hovalEvent(HovalMessage* message);
 };

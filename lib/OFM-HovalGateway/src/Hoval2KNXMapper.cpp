@@ -81,37 +81,36 @@ void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
   }
 }
 
-void Hoval2KNXMapper::internalSendToHoval(HovalMessageTransformer* messageProcessing, uint8_t value)
+void Hoval2KNXMapper::sendToHovalBus(GroupObject& ko)
 {
-  // TODO Implement send to Hoval
-}
-
-void Hoval2KNXMapper::internalSendToHoval(HovalMessageTransformer* messageProcessing, uint16_t value)
-{
-  // TODO Implement send to Hoval
-}
-
-template <typename T> void Hoval2KNXMapper::sendToHovalBus(uint8_t comObjIndex, T value)
-{
+  bool found = false;
   for (int i = 0; i < numberOfMessageTransformers; i++)
   {
     HovalMessageTransformer* processing = &(messageTransformers[i]);
-    if (processing->comObject == comObjIndex)
+    if (processing->comObject == ko.asap())
     {
-      internalSendToHoval(processing, value);
+      KNXValue value = ko.value(processing->dpt);
+      internalSendToHoval(value, processing);
+      found = true;
     }
   }
+  if (!found)
+  {
+    logDebugP("Sending not supported for KO %u", ko.asap());
+  }
 }
-
-template void Hoval2KNXMapper::sendToHovalBus<uint8_t>(byte objectIndex, uint8_t value);
-template void Hoval2KNXMapper::sendToHovalBus<uint16_t>(byte objectIndex, uint16_t value);
 
 void Hoval2KNXMapper::internalSendToKnx(HovalMessage* message, HovalMessageTransformer* messageProcessing)
 {
   GroupObject& groupObject = knx.getGroupObject(messageProcessing->comObject);
 
   KNXValue value = messageProcessing->transform(message);
+
   bool changed = groupObject.valueNoSendCompare(value, messageProcessing->dpt);
+  if (changed)
+  {
+    messageProcessing->setLastValue(value); // Store the last KNX value from Hoval for future change detection
+  }
 
   bool requestSend = (changed && messageProcessing->sendOnChange());
   if (!requestSend)
@@ -125,6 +124,29 @@ void Hoval2KNXMapper::internalSendToKnx(HovalMessage* message, HovalMessageTrans
     messageProcessing->lastSend = millis();
     groupObject.objectWritten();
   }
+}
+
+void Hoval2KNXMapper::internalSendToHoval(KNXValue& value, HovalMessageTransformer* messageProcessing)
+{
+
+  if (messageProcessing->inverseTranformer == nullptr)
+  {
+    logDebugP("No message transformer for KO %u", messageProcessing->comObject);
+    return;
+  }
+
+  // Check if the value to send is different from the last value received from Hoval
+  if (!messageProcessing->valueChanged(value))
+  {
+    logDebugP("Skipping send for KO %u: value unchanged", messageProcessing->comObject);
+    return;
+  }
+
+  logInfoP("Sending update to Hoval: KO %u", messageProcessing->comObject);
+
+  HovalValue hovalValue = messageProcessing->inverseTranformer(value);
+
+  protocolHandler->write(gatewayId, deviceId, messageProcessing->type, hovalValue);
 }
 
 std::string HovalMessageTransformer::logPrefix()
@@ -156,4 +178,36 @@ uint32_t HovalMessageTransformer::sendIntervalMs(HovalMessage* message)
   if (sendIntervalMsFunc == nullptr)
     return 0;
   return sendIntervalMsFunc(message);
+}
+
+void HovalMessageTransformer::setLastValue(const KNXValue& value)
+{
+  const size_t dataLength = std::min(dpt.dataLength(), sizeInMemory);
+  memset(lastValue, 0, sizeInMemory);
+  const bool encoded = KNX_Encode_Value(value, lastValue, dataLength, dpt);
+  lastValueInitialized = encoded;
+}
+
+bool HovalMessageTransformer::valueChanged(const KNXValue& value) const
+{
+  // If lastValue hasn't been initialized, consider the value as changed
+  if (!lastValueInitialized)
+  {
+    return true;
+  }
+
+  // Compare values by converting to the same DPT format and comparing the binary representation
+  // Same as in GroupObject::valueNoSendCompare
+  const size_t dataLength = std::min(dpt.dataLength(), sizeInMemory);
+  uint8_t currentData[dataLength];
+  memset(currentData, 0, dataLength);
+
+  const bool currentEncoded = KNX_Encode_Value(value, currentData, dataLength, dpt);
+
+  if (!currentEncoded)
+  {
+    return true; // Encoding failed, consider them different
+  }
+
+  return memcmp(currentData, lastValue, dataLength) != 0;
 }
