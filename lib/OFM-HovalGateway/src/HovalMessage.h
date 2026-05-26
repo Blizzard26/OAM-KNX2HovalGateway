@@ -171,6 +171,8 @@ struct HovalMessage
 
   ~HovalMessage();
 
+  bool addToBody(const uint8_t* data, uint8_t length);
+
   bool validateCrc();
 
   void printBody(char* buf, uint8_t bufLen);
