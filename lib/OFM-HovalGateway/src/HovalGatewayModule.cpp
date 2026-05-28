@@ -107,7 +107,7 @@ inline bool Knx2HovalGatewayModule::checkCanError()
   if (CAN.checkError(&err_ptr) != CAN_OK)
   {
     uint8_t rxStatus = (CAN.readRxTxStatus() & MCP_STAT_RXIF_MASK);
-    logDebugP("CAN error: %#02X; RX-Status: %#02X", err_ptr, rxStatus);
+    logErrorP("CAN error: %#02X; RX-Status: %#02X", err_ptr, rxStatus);
 
     uint16_t errorCode = (err_ptr << 8) | rxStatus;
     if (errorCode != lastCanError)
