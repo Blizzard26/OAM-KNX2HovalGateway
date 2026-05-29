@@ -54,22 +54,24 @@ bool HovalProtocolHandler::connect()
   bool success = canBus->setMode(MODE_NORMAL) == MCP2515_OK;
   if (!success)
   {
-    logTraceP("setMode failed");
+    logErrorP("setMode failed");
   }
   // Allow EXT-Messages to be received
 #if defined(FILTER_CAN_MESSAGES)
   success &= canBus->init_Mask(0, true, 0x000007FF) == MCP2515_OK; // Filter enabled
+  success &= canBus->init_Mask(1, true, 0x000007FF) == MCP2515_OK; // Filter enabled
 #else
   success &= canBus->init_Mask(0, true, 0x00000000) == MCP2515_OK; // Filter disabled
 #endif
   if (!success)
   {
-    logTraceP("init_Mask failed");
+    logErrorP("init_Mask failed");
   }
   success &= canBus->init_Filt(0, true, 0x000007FF) == MCP2515_OK;
+  success &= canBus->init_Filt(2, true, 0x000007FF) == MCP2515_OK;
   if (!success)
   {
-    logTraceP("init_Filt failed");
+    logErrorP("init_Filt failed");
   }
   canBus->enableTxInterrupt(false);
   return success;
@@ -85,14 +87,32 @@ bool HovalProtocolHandler::task()
 #endif
   )
   {
-    CanMessage* canMessage = canReceiveBuffer.beginPush();
-    // ASSERT(canMessage != nullptr, "Can Receive Buffer Full"); // Should never happen because we check available first
-    //  Check if there is something to receive
-    if (tryReadCANMessage(canMessage->address, canMessage->body, canMessage->bodyLength)) // read data,  len: data length, buf: data buf
+    boolean received = false;
+
+    do
     {
-      canReceiveBuffer.endPush();
+      CanMessage* canMessage = canReceiveBuffer.beginPush();
+      // ASSERT(canMessage != nullptr, "Can Receive Buffer Full"); // Should never happen because we check available first
+      //  Check if there is something to receive
+      if (tryReadCANMessage(canMessage->address, canMessage->body, canMessage->bodyLength)) // read data,  len: data length, buf: data buf
+      {
+        canReceiveBuffer.endPush();
+        received = true;
+      }
+      else
+      {
+        break;
+      }
+    } while (
+#if defined(USE_CAN_ISR)
+        digitalRead(interruptPin) == LOW
+#else
+        false
+#endif
+    );
+
+    if (received)
       return true;
-    }
   }
 
   if (!canReceiveBuffer.isEmpty())
