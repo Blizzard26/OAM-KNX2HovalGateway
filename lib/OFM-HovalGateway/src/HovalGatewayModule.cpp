@@ -12,7 +12,7 @@
 #include "HovalMessageTransformer.h"
 
 #ifndef CAN_ERROR_LOOP_CNT
-#define CAN_ERROR_LOOP_CNT 128
+#define CAN_ERROR_LOOP_CNT 8
 #endif
 
 #ifndef CAN_CONNECT_RETRY_DELAY
@@ -128,13 +128,14 @@ inline bool Knx2HovalGatewayModule::checkCanError()
       canErrorCount = 0;
       lastCanError = 0;
     }
+    return true;
   }
   else
   {
     canErrorCount = 0;
     lastCanError = 0;
   }
-  return true;
+  return false;
 }
 
 inline bool Knx2HovalGatewayModule::checkActive()
