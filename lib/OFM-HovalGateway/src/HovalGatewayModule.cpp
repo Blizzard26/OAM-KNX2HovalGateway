@@ -235,7 +235,7 @@ const std::string Knx2HovalGatewayModule::version()
 
 bool Knx2HovalGatewayModule::processCommand(const std::string cmd, bool diagnoseKo)
 {
-  if (cmd.substr(0, 6) != "hoval " || cmd.length() < 7)
+  if (cmd.substr(0, 4) != "hov " || cmd.length() < 5)
     return false;
 
   if (!ready)
@@ -244,19 +244,19 @@ bool Knx2HovalGatewayModule::processCommand(const std::string cmd, bool diagnose
     return true;
   }
 
-  std::string command = cmd.substr(6);
+  std::string command = cmd.substr(4);
 
   if (command.substr(0, 4) == "log ")
   {
     command = command.substr(4);
 
-    if (command == "message")
+    if (command == "msg")
     {
       hoval.setLogMessage(!hoval.isLogMessage());
       logInfoP("Logging message headers: %s", hoval.isLogMessage() ? "enabled" : "disabled");
       return true;
     }
-    if (command == "messageData")
+    if (command == "msgData")
     {
       if (!hoval.isLogMessageData())
       {
@@ -267,13 +267,13 @@ bool Knx2HovalGatewayModule::processCommand(const std::string cmd, bool diagnose
       logInfoP("Logging message data: %s", hoval.isLogMessageData() ? "enabled" : "disabled");
       return true;
     }
-    if (command == "filtered")
+    if (command == "filt")
     {
       hoval.setLogFilteredMessage(!hoval.isLogFilteredMessage());
       logInfoP("Logging filtered message headers: %s", hoval.isLogFilteredMessage() ? "enabled" : "disabled");
       return true;
     }
-    if (command == "filteredData")
+    if (command == "filtData")
     {
       if (!hoval.isLogFilteredMessageData())
       {
@@ -286,15 +286,29 @@ bool Knx2HovalGatewayModule::processCommand(const std::string cmd, bool diagnose
     }
   }
 
+  if (command.substr(0, 4) == "can ")
+  {
+    command = command.substr(4);
+
+    if (command.substr(0, 5) == "read ")
+    {
+      std::string commandValue = command.substr(5);
+      uint8_t reg = strtol(commandValue.c_str(), nullptr, 0);
+      logInfoP("Read CAN register %#02X: %#02X", reg, CAN.readRegister(reg));
+      return true;
+    }
+  }
+
   return false;
 }
 
 void Knx2HovalGatewayModule::showHelp()
 {
-  openknx.console.printHelpLine("hoval log message", "Log header of received (known) messages");
-  openknx.console.printHelpLine("hoval log messageData", "Log payload of received (known) messages");
-  openknx.console.printHelpLine("hoval log filtered", "Log header of filtered messages");
-  openknx.console.printHelpLine("hoval log filteredData", "Log payload of filtered messages");
+  openknx.console.printHelpLine("hov log msg", "Log header of received (known) messages");
+  openknx.console.printHelpLine("hov log msgData", "Log payload of received (known) messages");
+  openknx.console.printHelpLine("hov log filt", "Log header of filtered messages");
+  openknx.console.printHelpLine("hov log filtaiData", "Log payload of filtered messages");
+  openknx.console.printHelpLine("hov can read <register>", "Read a CAN register");
 }
 
 void Knx2HovalGatewayModule::showInformations()
