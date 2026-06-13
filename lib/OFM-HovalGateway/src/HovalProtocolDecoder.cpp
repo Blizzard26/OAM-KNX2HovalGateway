@@ -41,12 +41,21 @@ bool HovalProtocolHandler::begin()
   return true;
 }
 
+static const uint8_t CAN_INIT_MAX_RETRIES = 5;
+
 bool HovalProtocolHandler::connect()
 {
   logTraceP("connect");
-  while (CAN_OK != canBus->begin(CAN_50KBPS, CAN_CLOCK))
-  { // init can bus : baudrate = 50k
-    logErrorP("CAN init fail, retry...");
+  for (uint8_t i = 0; i < CAN_INIT_MAX_RETRIES; i++)
+  {
+    if (CAN_OK == canBus->begin(CAN_50KBPS, CAN_CLOCK))
+      break;
+    logErrorP("CAN init fail (%u/%u)", i + 1, CAN_INIT_MAX_RETRIES);
+    if (i + 1 == CAN_INIT_MAX_RETRIES)
+    {
+      logErrorP("CAN init failed after %u retries", CAN_INIT_MAX_RETRIES);
+      return false;
+    }
     delay(100);
   }
 
