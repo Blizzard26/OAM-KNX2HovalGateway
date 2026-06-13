@@ -540,7 +540,7 @@ int16_t HovalValue::s16Value(uint8_t decimals) const
     return scaleUnsigned(value.ushortValue, decimals);
   case DataType::FLOAT:
   case DataType::DOUBLE:
-    return MIN(MAX(scaleFloat(value.floatValue, decimals), 0), UINT16_MAX);
+    return MIN(MAX(scaleFloat(value.floatValue, decimals), INT16_MIN), INT16_MAX);
   default:
     logError("HovalValue", "DataType missmatch");
     return 0;
