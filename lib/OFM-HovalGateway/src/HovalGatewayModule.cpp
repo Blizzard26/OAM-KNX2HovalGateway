@@ -17,7 +17,12 @@
 
 #ifndef CAN_CONNECT_RETRY_DELAY
 // 30 seconds
-#define CAN_CONNECT_RETRY_DELAY 30 * 1000
+#define CAN_CONNECT_RETRY_DELAY (30 * 1000)
+#endif
+
+// Maximum number of KO slots reserved for this module starting at HOV_Koglobal_online
+#ifndef HOV_MAX_KO_NUM
+#define HOV_MAX_KO_NUM 100
 #endif
 
 #ifndef HOVAL_ACTIVE_PIN_ACTIVE_ON
@@ -217,7 +222,7 @@ inline bool Knx2HovalGatewayModule::connect()
 
 void Knx2HovalGatewayModule::processInputKo(GroupObject& ko)
 {
-  if (ko.asap() >= HOV_Koglobal_online && ko.asap() < HOV_Koglobal_online + 100)
+  if (ko.asap() >= HOV_Koglobal_online && ko.asap() < HOV_Koglobal_online + HOV_MAX_KO_NUM)
   {
     logTraceP("Received update for KO %u, %u", ko.asap(), ko.commFlag());
     hoval2KNX.sendToHovalBus(ko);
