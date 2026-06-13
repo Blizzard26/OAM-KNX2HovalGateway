@@ -834,7 +834,7 @@ static inline uint16_t checkBounds(uint16_t value, int32_t minValue, int32_t max
 static inline int16_t checkBounds(int16_t value, int32_t minValue, int32_t maxValue)
 {
   if (minValue != INT32_MIN && value < minValue)
-    return minValue < 0 ? INT16_MIN : (int16_t)minValue;
+    return minValue < INT16_MIN ? INT16_MIN : (int16_t)minValue;
   if (maxValue != INT32_MAX && value > maxValue)
     return maxValue > INT16_MAX ? INT16_MAX : (int16_t)maxValue;
   return value;
