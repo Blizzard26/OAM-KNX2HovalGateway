@@ -113,6 +113,17 @@ public:
 #endif
   };
 
+  ~HovalProtocolHandler()
+  {
+    for (uint8_t i = 0; i < RECEIVE_STACK_SIZE; i++)
+    {
+      delete messageStack[i];
+      messageStack[i] = nullptr;
+    }
+    while (!sendBuffer.isEmpty())
+      delete *(sendBuffer.pop());
+  }
+
   bool begin();
 
   bool connect();
