@@ -31,6 +31,9 @@ private:
   bool (*const activeFunc)();
   std::string logPrefix();
 
+  HovalMessageTransformer(const HovalMessageTransformer&) = delete;
+  HovalMessageTransformer& operator=(const HovalMessageTransformer&) = delete;
+
 public:
   /// @brief Hoval message transfomer used for describing transformation from Hoval Message to KNX Message and
   //         vice versa
