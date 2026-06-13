@@ -70,11 +70,6 @@ void Knx2HovalGatewayModule::readParams()
   this->requestInterval = ParamHOV_HVPollingIntervalDelayTimeMS;
 }
 
-inline static constexpr const uint32_t calculateTimeDifference(const uint32_t lastTime, const uint32_t newTime)
-{
-  return newTime - lastTime;
-}
-
 // Needs to be called at least every 400us
 void Knx2HovalGatewayModule::loop()
 {
@@ -170,7 +165,7 @@ inline bool Knx2HovalGatewayModule::checkActive()
     }
   }
   // If not yet / no longer connected try to reconnect
-  else if (active && !ready)
+  else if (!ready)
   {
     // Retry connection every N seconds
     if (lastReconnectTry == 0 || delayCheck(lastReconnectTry, CAN_CONNECT_RETRY_DELAY))
