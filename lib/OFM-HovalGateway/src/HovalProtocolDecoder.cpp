@@ -59,7 +59,6 @@ bool HovalProtocolHandler::connect()
     delay(100);
   }
 
-  // canBus->setMode(MODE_LISTENONLY);
   bool success = canBus->setMode(MODE_NORMAL) == MCP2515_OK;
   if (!success)
   {
@@ -780,7 +779,6 @@ void HovalProtocolHandler::sendSingleMessage(HovalMessage* message)
     logIndentDown();
   }
 
-  // Temporary READ_REQUEST only until write request is supported. This is to avoid sending messages that we can't handle yet.
   boolean success = trySendCANMessage(address, body, messageLength);
 
   if (success)

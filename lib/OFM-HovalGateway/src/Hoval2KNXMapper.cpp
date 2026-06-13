@@ -64,13 +64,14 @@ void Hoval2KNXMapper::hovalEvent(HovalMessage* message)
 void Hoval2KNXMapper::sendToKNXBus(HovalMessage* message)
 {
   bool found = false;
+  uint32_t now = millis();
   for (int i = 0; i < numberOfMessageTransformers; i++)
   {
     HovalMessageTransformer* processing = &(messageTransformers[i]);
     if (processing->type == message->messageType)
     {
       internalSendToKnx(message, processing);
-      processing->lastSeen = millis();
+      processing->lastSeen = now;
       found = true;
     }
   }

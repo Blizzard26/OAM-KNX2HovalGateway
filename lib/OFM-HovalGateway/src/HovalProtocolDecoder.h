@@ -34,7 +34,7 @@ public:
   virtual void hovalEvent(HovalMessage* message) = 0;
 };
 
-static uint16_t messageFilterHash(HovalMessageTypeId& messageTypeId)
+static uint16_t messageFilterHash(const HovalMessageTypeId& messageTypeId)
 {
   uint16_t hashCode = messageTypeId.hashCode();
   // logTrace("HovalProtocolDecoder", "HashCode: %u, dp: ", hashCode, messageTypeId.dataPointId);

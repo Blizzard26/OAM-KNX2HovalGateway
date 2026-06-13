@@ -100,13 +100,14 @@ static uint8_t errorBitSet = 0;
 KNXValue hasError(HovalMessage* message)
 {
   uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
-  if (message->errorMessage().error_type != 0)
+  ErrorMessage em = message->errorMessage();
+  if (em.error_type != 0)
   {
-    errorBitSet |= 1 << index;
+    errorBitSet |= 1u << index;
   }
   else
   {
-    errorBitSet &= 0xFF ^ (1 << index);
+    errorBitSet &= 0xFF ^ (1u << index);
   }
   return KNXValue(errorBitSet != 0);
 }
@@ -116,13 +117,14 @@ static uint8_t errorBitField = 0;
 KNXValue activeErrors(HovalMessage* message)
 {
   uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
-  if (message->errorMessage().error_type != '\0' && message->errorMessage().error_type != 'W')
+  ErrorMessage em = message->errorMessage();
+  if (em.error_type != '\0' && em.error_type != 'W')
   {
-    errorBitField |= 1 << index;
+    errorBitField |= 1u << index;
   }
   else
   {
-    errorBitField &= 0xFF ^ (1 << index);
+    errorBitField &= 0xFF ^ (1u << index);
   }
   return toDptStatusMode3(errorBitField, 0b100);
 }
@@ -132,13 +134,14 @@ static uint8_t warningBitField = 0;
 KNXValue activeWarnings(HovalMessage* message)
 {
   uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
-  if (message->errorMessage().error_type == 'W')
+  ErrorMessage em = message->errorMessage();
+  if (em.error_type == 'W')
   {
-    warningBitField |= 1 << index;
+    warningBitField |= 1u << index;
   }
   else
   {
-    warningBitField &= 0xFF ^ (1 << index);
+    warningBitField &= 0xFF ^ (1u << index);
   }
   return toDptStatusMode3(warningBitField, 0b010);
 }
@@ -194,19 +197,19 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode_week1), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 1); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 1 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 1 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode_week2), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 2); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 2 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 2 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode_constant), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 4); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 4 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 4 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode_economy), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 5); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 5 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 5 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode), DPT_Status3, &listToDptStatus_Mode3,
         [](KNXValue& value) -> HovalValue { return enumValueToList((((uint8_t)value >> 3) > 5) ? 0 : (uint8_t)value); }, &sendOnChange, &defaultSendIntervalMs),
@@ -220,27 +223,27 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_normal), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 1); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 1 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 1 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_voc), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 2); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 2 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 2 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_humidity), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 3); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 3 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 3 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_antifreeze), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 4); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 4 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 4 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_coolvent), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 5); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 5 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 5 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol_error), DPT_State,
         [](HovalMessage* message) -> KNXValue { return listToDptState(message, 6); },
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 6 : 0); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((bool)value ? 6 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &AirQualityControl, homeVentComObject(HOV_Kovent_airqualitycontrol), DPT_Status3, &listToDptStatus_Mode3,
         [](KNXValue& value) -> HovalValue { return enumValueToList(((uint8_t)value > 6) ? 0 : (uint8_t)value); }, &sendOnChange, &defaultSendIntervalMs),

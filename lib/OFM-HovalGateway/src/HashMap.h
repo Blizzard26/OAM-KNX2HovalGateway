@@ -44,10 +44,10 @@ private:
   // hash table
   HashNode<K, V>* table[tableSize];
 
-  uint16_t (*hashFunc)(K& key);
+  uint16_t (*hashFunc)(const K& key);
 
 public:
-  HashMap(uint16_t (*hashFunc)(K& key)) : table(), hashFunc(hashFunc) {}
+  HashMap(uint16_t (*hashFunc)(const K& key)) : table(), hashFunc(hashFunc) {}
 
   ~HashMap()
   {
@@ -67,7 +67,7 @@ public:
     }
   }
 
-  uint16_t calculateHashKey(K key) { return hashFunc(key) % tableSize; }
+  uint16_t calculateHashKey(const K& key) { return hashFunc(key) % tableSize; }
 
   V get(const K& key)
   {
