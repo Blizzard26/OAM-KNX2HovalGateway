@@ -29,14 +29,21 @@ HovalValue enumValueToList(uint8_t value)
   return HovalValue(value, DataType::LIST);
 }
 
-KNXValue listToDptStatus_Mode3(HovalMessage* message)
+KNXValue toDptStatusMode3(uint8_t status, uint8_t mode)
 {
-  return KNXValue(message->list());
+  return KNXValue((uint8_t)((status & 0x1F) << 3 | (mode & 0x07)));
 }
 
+// DPT_Status3
+KNXValue listToDptStatus_Mode3(HovalMessage* message)
+{
+  return toDptStatusMode3(message->list(), 0b001);
+}
+
+// DPT_Status3
 KNXValue byteToDptStatus_Mode3(HovalMessage* message)
 {
-  return KNXValue(message->u8Value());
+  return toDptStatusMode3(message->u8Value(), 0b001);
 }
 
 KNXValue hoursToDptTimePeriodMin(HovalMessage* message)
@@ -105,6 +112,7 @@ KNXValue hasError(HovalMessage* message)
 }
 
 static uint8_t errorBitField = 0;
+// DPT_Status3
 KNXValue activeErrors(HovalMessage* message)
 {
   uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
@@ -116,10 +124,11 @@ KNXValue activeErrors(HovalMessage* message)
   {
     errorBitField &= 0xFF ^ (1 << index);
   }
-  return KNXValue(errorBitField);
+  return toDptStatusMode3(errorBitField, 0b100);
 }
 
 static uint8_t warningBitField = 0;
+// DPT_Status3
 KNXValue activeWarnings(HovalMessage* message)
 {
   uint8_t index = message->messageType->dataPointId - ActiveError1.dataPointId;
@@ -131,7 +140,7 @@ KNXValue activeWarnings(HovalMessage* message)
   {
     warningBitField &= 0xFF ^ (1 << index);
   }
-  return KNXValue(warningBitField);
+  return toDptStatusMode3(warningBitField, 0b010);
 }
 
 KNXValue errorToAppearanceTimestamp(HovalMessage* message)
@@ -148,7 +157,8 @@ KNXValue errorToAppearanceTimestamp(HovalMessage* message)
 #else
 #define homeVentComObject(ko) ko
 #endif
-#define DPT_Status3 Dpt(6, 20, 5)
+// Should actually be DPT_Status_Mode3, but sending that is strange / doesn't work
+#define DPT_Status3 DPT_Value_1_Count
 
 uint32_t defaultSendIntervalMs(HovalMessage* message)
 {
@@ -199,7 +209,7 @@ HovalMessageTransformer Hoval2KNXMapper::messageTransformers[] = {
         [](KNXValue& value) -> HovalValue { return enumValueToList(((bool)value == true) ? 5 : 0); }, &sendOnChange, &defaultSendIntervalMs),
     HovalMessageTransformer(
         &OperatingMode, homeVentComObject(HOV_Kovent_operating_mode), DPT_Status3, &listToDptStatus_Mode3,
-        [](KNXValue& value) -> HovalValue { return enumValueToList(((uint8_t)value > 5) ? 0 : (uint8_t)value); }, &sendOnChange, &defaultSendIntervalMs),
+        [](KNXValue& value) -> HovalValue { return enumValueToList((((uint8_t)value >> 3) > 5) ? 0 : (uint8_t)value); }, &sendOnChange, &defaultSendIntervalMs),
 
     // 0=Gerät aus, z.B. Standbybetrieb; 1=Normaler Lüftungsbetrieb; 2=VOC Modus aktiv; 3=Feuchtigkeitsmodus aktiv; 4=Frostschutz aktiv;
     // 5=CoolVet aktiv;=Fehlerzustand
