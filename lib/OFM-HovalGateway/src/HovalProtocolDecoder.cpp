@@ -686,14 +686,14 @@ bool HovalProtocolHandler::sendMessage(uint16_t sender, uint16_t target, HovalFu
     return false;
   }
 
-  HovalMessage* message = new HovalMessage(messageId++, type, functionCode, sender, target, bodyLength);
+  std::unique_ptr<HovalMessage> message(new HovalMessage(messageId++, type, functionCode, sender, target, bodyLength));
   message->addToBody(messageBody, bodyLength);
 
   logDebugP("Queueing: %u | fCode: %#02X | uType: %u, uId: %u | fGrp: %u, fNo: %u, dPId: %u", message->messageId, message->functionCode,
             message->messageType->unitType, message->senderId, message->messageType->functionGroup, message->messageType->functionNumber,
             message->messageType->dataPointId);
 
-  sendBuffer.push(message);
+  sendBuffer.push(std::move(message));
 
   return true;
 }
@@ -725,7 +725,7 @@ bool HovalProtocolHandler::doSend()
     return false;
   }
 
-  HovalMessage* message = *(sendBuffer.peek());
+  HovalMessage* message = sendBuffer.peek()->get();
 
   if (message->messageBodyLength <= (MAX_MESSAGE_LENGTH - SINGLE_MESSAGE_HEADER_LENGTH))
   {
@@ -737,7 +737,7 @@ bool HovalProtocolHandler::doSend()
   {
     // Calculating of CRC is currently unknown.
     logErrorP("Sending of Multi-Part Messages is currently not supported.");
-    delete *(sendBuffer.pop());
+    sendBuffer.pop()->reset();
   }
   return true;
 }
@@ -783,7 +783,7 @@ void HovalProtocolHandler::sendSingleMessage(HovalMessage* message)
 
   if (success)
   {
-    delete *(sendBuffer.pop());
+    sendBuffer.pop()->reset();
     sendErrorCnt = 0;
   }
   else
@@ -792,7 +792,7 @@ void HovalProtocolHandler::sendSingleMessage(HovalMessage* message)
     sendErrorCnt++;
     if (sendErrorCnt > MAX_SEND_ERROR_CNT)
     {
-      delete *(sendBuffer.pop());
+      sendBuffer.pop()->reset();
       sendErrorCnt = 0;
     }
   }
