@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mcp_can.h>
+#include <memory>
 #include <stdint.h>
 #include <stdlib.h>
 // #include <memory.h>
@@ -67,7 +68,7 @@ class HovalProtocolHandler
   /* END Receive Buffer*/
 
   /* BEGIN Send Buffer*/
-  SimpleRingBuffer<HovalMessage*, SEND_BUFFER_SIZE> sendBuffer;
+  SimpleRingBuffer<std::unique_ptr<HovalMessage>, SEND_BUFFER_SIZE> sendBuffer;
   uint8_t sendOffset = 0;
   uint8_t sendErrorCnt = 0;
   /* END Send Buffer*/
@@ -120,8 +121,6 @@ public:
       delete messageStack[i];
       messageStack[i] = nullptr;
     }
-    while (!sendBuffer.isEmpty())
-      delete *(sendBuffer.pop());
   }
 
   bool begin();
