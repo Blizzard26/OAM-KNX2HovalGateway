@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <utility>
 
 template <typename T, uint8_t BUFFER_SIZE> class SimpleRingBuffer
 {
@@ -30,7 +31,7 @@ private:
 public:
   SimpleRingBuffer() { static_assert(BUFFER_SIZE > 0 && BUFFER_SIZE != UINT8_MAX, "Invalid buffer size"); }
 
-  inline bool offer(const T& value)
+  inline bool offer(T value)
   {
     T* insertPosition = beginPush();
 
@@ -39,12 +40,12 @@ public:
       return false;
     }
 
-    *insertPosition = value;
+    *insertPosition = std::move(value);
     endPush();
     return true;
   }
 
-  void push(const T& value)
+  void push(T value)
   {
     if (isFull())
     {
@@ -54,7 +55,7 @@ public:
 
     T* insertPosition = beginPush();
 
-    *insertPosition = value;
+    *insertPosition = std::move(value);
     endPush();
   }
 
