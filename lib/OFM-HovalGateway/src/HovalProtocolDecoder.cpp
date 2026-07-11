@@ -1,8 +1,6 @@
 #include "HovalProtocolDecoder.h"
 #include "OpenKNX.h"
-#include "hardware.h"
 #include "math.h"
-#include <mcp2515_can_dfs.h>
 #include <string.h>
 
 static const uint8_t MAX_SEND_ERROR_CNT = 10;
@@ -26,10 +24,6 @@ static const uint8_t FOLLOW_MESSAGE_HEADER_LENGTH = 1;
 static const uint8_t FOLLOW_MESSAGE_MAX_BODY_LENGTH = MAX_MESSAGE_LENGTH - FOLLOW_MESSAGE_HEADER_LENGTH;
 static const uint8_t MAX_MESSAGE_COUNT = 31;
 
-#if !defined(CAN_CLOCK)
-#error "CAN_CLOCK not defined. "
-#endif
-
 bool HovalProtocolHandler::begin()
 {
   for (uint8_t i = 0; i < numberOfMessageFilters; i++)
@@ -41,92 +35,22 @@ bool HovalProtocolHandler::begin()
   return true;
 }
 
-static const uint8_t CAN_INIT_MAX_RETRIES = 5;
-
 bool HovalProtocolHandler::connect()
 {
   logTraceP("connect");
-  for (uint8_t i = 0; i < CAN_INIT_MAX_RETRIES; i++)
-  {
-    if (CAN_OK == canBus->begin(CAN_50KBPS, CAN_CLOCK))
-      break;
-    logErrorP("CAN init fail (%u/%u)", i + 1, CAN_INIT_MAX_RETRIES);
-    if (i + 1 == CAN_INIT_MAX_RETRIES)
-    {
-      logErrorP("CAN init failed after %u retries", CAN_INIT_MAX_RETRIES);
-      return false;
-    }
-    delay(100);
-  }
-
-  bool success = canBus->setMode(MODE_NORMAL) == MCP2515_OK;
-  if (!success)
-  {
-    logErrorP("setMode failed");
-  }
-  // Allow EXT-Messages to be received
-#if defined(FILTER_CAN_MESSAGES)
-  success &= canBus->init_Mask(0, true, 0x000007FF) == MCP2515_OK; // Filter enabled
-  success &= canBus->init_Mask(1, true, 0x000007FF) == MCP2515_OK; // Filter enabled
-#else
-  success &= canBus->init_Mask(0, true, 0x00000000) == MCP2515_OK; // Filter disabled
-#endif
-  if (!success)
-  {
-    logErrorP("init_Mask failed");
-  }
-  success &= canBus->init_Filt(0, true, 0x000007FF) == MCP2515_OK;
-  success &= canBus->init_Filt(2, true, 0x000007FF) == MCP2515_OK;
-  if (!success)
-  {
-    logErrorP("init_Filt failed");
-  }
-  canBus->enableTxInterrupt(false);
-  return success;
+  // Detach any previously-installed ISR before begin() reconfigures the
+  // chip (mode/masks/filters aren't written atomically) — a no-op on the
+  // very first connect since stop() tolerates not having been started.
+  canTransport->stop();
+  return canTransport->begin() && canTransport->start();
 }
 
 bool HovalProtocolHandler::task()
 {
-
-  if (canReceiveBuffer.available()
-#if defined(USE_CAN_ISR)
-      // Interrupt pin is pulled low when there are messages to read
-      && digitalRead(interruptPin) == LOW
-#endif
-  )
+  CanMessage message;
+  if (tryReadCANMessage(message))
   {
-    boolean received = false;
-
-    do
-    {
-      CanMessage* canMessage = canReceiveBuffer.beginPush();
-      // ASSERT(canMessage != nullptr, "Can Receive Buffer Full"); // Should never happen because we check available first
-      //  Check if there is something to receive
-      if (tryReadCANMessage(canMessage->address, canMessage->body, canMessage->bodyLength)) // read data,  len: data length, buf: data buf
-      {
-        canReceiveBuffer.endPush();
-        received = true;
-      }
-      else
-      {
-        break;
-      }
-    } while (
-#if defined(USE_CAN_ISR)
-        digitalRead(interruptPin) == LOW
-#else
-        false
-#endif
-    );
-
-    if (received)
-      return true;
-  }
-
-  if (!canReceiveBuffer.isEmpty())
-  {
-    CanMessage* message = canReceiveBuffer.pop();
-    onMessageReceived(message->address, message->body, message->bodyLength);
+    onMessageReceived(message.address, message.body, message.bodyLength);
     return true;
   }
 
@@ -138,21 +62,19 @@ bool HovalProtocolHandler::task()
   return doPing();
 }
 
-bool HovalProtocolHandler::tryReadCANMessage(uint32_t& address, uint8_t* body, uint8_t& bodyLength)
+bool HovalProtocolHandler::tryReadCANMessage(CanMessage& message)
 {
-  // Try reading data
-  if (CAN_OK == this->canBus->readMsgBufID(&address, &bodyLength, body))
+  if (!canTransport->receive(message))
+    return false;
+
+  if (isLogRawMessage())
   {
-    if (isLogRawMessage())
-    {
-      logTraceP("CAN ID: %#02X", address);
-      logIndentUp();
-      logHexTraceP(body, bodyLength);
-      logIndentDown();
-    }
-    return true;
+    logTraceP("CAN ID: %#02X", message.address);
+    logIndentUp();
+    logHexTraceP(message.body, message.bodyLength);
+    logIndentDown();
   }
-  return false;
+  return true;
 }
 
 bool HovalProtocolHandler::trySendCANMessage(uint32_t address, uint8_t* body, uint8_t bodyLength)
@@ -164,17 +86,7 @@ bool HovalProtocolHandler::trySendCANMessage(uint32_t address, uint8_t* body, ui
     logHexTraceP(body, bodyLength);
     logIndentDown();
   }
-  // Don't wait for sent. Timeout in mcp2515_can.cpp is too short and will result in CAN_SENDMSGTIMEOUT
-  uint8_t result = this->canBus->trySendMsgBuf(address, true, false, bodyLength, body, MCP_N_TXBUFFERS);
-  if (result == CAN_FAILTX)
-  {
-    // No available buffer for send. Try again later.
-    return false;
-  }
-  if (result != CAN_OK)
-    logErrorP("Send Failed: %u", result);
-
-  return result == CAN_OK;
+  return canTransport->send(address, body, bodyLength);
 }
 
 /**

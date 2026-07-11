@@ -4,19 +4,12 @@
 #include "OpenKNX.h"
 #include "hardware.h"
 
-#include <mcp2515_can.h>
-
+#include "CanTransportFactory.h"
 #include "HovalProtocolDecoder.h"
 
 #include "Hoval2KNXMapper.h"
 
-#ifndef CAN_INT_PIN
-#error "CAN_INT_PIN not defined"
-#endif
-
-#ifndef SPI_CS_PIN
-#error "SPI_CS_PIN not defined"
-#endif
+#include <memory>
 
 class Knx2HovalGatewayModule : public OpenKNX::Module
 {
@@ -36,10 +29,10 @@ private:
 
   uint16_t loopCount = 0;
   uint8_t canErrorCount = 0;
-  uint16_t lastCanError = 0;
+  uint32_t lastCanError = 0;
 
   /* Begin Can / Hoval Interface */
-  mcp2515_can CAN;
+  std::unique_ptr<CanTransport> canTransport;
   HovalProtocolHandler hoval;
   Hoval2KNXMapper hoval2KNX;
   /* End */
@@ -51,7 +44,7 @@ private:
   inline bool connect();
 
 public:
-  Knx2HovalGatewayModule() : CAN(SPI_CS_PIN), hoval(&CAN, CAN_INT_PIN), hoval2KNX(&hoval) { hoval.setHovalEventHandler(&hoval2KNX); }
+  Knx2HovalGatewayModule() : canTransport(createCanTransport()), hoval(canTransport.get()), hoval2KNX(&hoval) { hoval.setHovalEventHandler(&hoval2KNX); }
 
   void setup(bool configured) override;
   void loop() override;

@@ -30,7 +30,6 @@
 #define CAN_SPI SPI
 #define CAN_INT_PIN D2
 #define CAN_CLOCK MCP_16MHz
-#define USE_CAN_ISR
 
 #define HOVAL_ACTIVE_PIN D0
 #define HOVAL_ACTIVE_PIN_ACTIVE_ON LOW
