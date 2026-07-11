@@ -10,3 +10,7 @@ include/versions.h
 restore/
 release/
 src/KNX2HovalGateway-*.debug.xml
+src/KNX2HovalGateway-Release.baggages/*
+.idea
+docs/plans/*
+schematics/.history/
