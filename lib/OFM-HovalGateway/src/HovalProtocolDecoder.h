@@ -1,29 +1,20 @@
 #pragma once
 
-#include <mcp_can.h>
+#include "CanTransport.h"
 #include <memory>
 #include <stdint.h>
 #include <stdlib.h>
-// #include <memory.h>
+#include <string.h>
 #include "HovalMessage.h"
 #include <HashMap.h>
 #include <SimpleRingBuffer.h>
 #include <string>
-
-#define FILTER_CAN_MESSAGES
 
 #if defined(OPENKNX_DEBUG)
 #define LOG_MESSAGES true
 #else
 #define LOG_MESSAGES false
 #endif
-
-struct CanMessage
-{
-  uint32_t address;
-  uint8_t body[8];
-  uint8_t bodyLength = 0;
-};
 
 #define RECEIVE_STACK_SIZE 8
 #define SEND_BUFFER_SIZE 3
@@ -44,8 +35,7 @@ static uint16_t messageFilterHash(const HovalMessageTypeId& messageTypeId)
 
 class HovalProtocolHandler
 {
-  MCP_CAN* canBus;
-  uint32_t interruptPin;
+  CanTransport* canTransport; // non-owning; owned by Knx2HovalGatewayModule
   IHovalEventHandler* hovalEventHandler = nullptr;
   uint16_t gatewayId = 0;
   uint32_t lastPingTimestamp = 0;
@@ -56,8 +46,6 @@ class HovalProtocolHandler
   static const uint8_t numberOfMessageFilters;
 
   HashMap<HovalMessageTypeId, const HovalMessageType*, 53> messageTypeHashMap;
-  /* Can Message Receive Buffer*/
-  SimpleRingBuffer<CanMessage, 10> canReceiveBuffer;
 
   /* BEGIN Receive LRU Buffer */
   HovalMessage* messageStack[RECEIVE_STACK_SIZE]{};
@@ -79,7 +67,7 @@ class HovalProtocolHandler
   bool logFilteredMessage = false;
   bool logFilteredMessageData = false;
 
-  inline bool tryReadCANMessage(uint32_t& address, uint8_t* body, uint8_t& bodyLength);
+  inline bool tryReadCANMessage(CanMessage& message);
   inline bool trySendCANMessage(uint32_t address, uint8_t* body, uint8_t bodyLength);
   inline bool isLogRawMessage() { return LOG_MESSAGES && logRawMessage; }
 
@@ -104,14 +92,10 @@ class HovalProtocolHandler
   std::string logPrefix() { return "HovalProtocolDecoder"; }
 
 public:
-  HovalProtocolHandler(MCP_CAN* canBus, uint32_t interruptPin) : canBus(canBus), interruptPin(interruptPin), messageTypeHashMap(messageFilterHash)
+  HovalProtocolHandler(CanTransport* canTransport) : canTransport(canTransport), messageTypeHashMap(messageFilterHash)
   {
     memset(messageStack, 0, RECEIVE_STACK_SIZE * sizeof(HovalMessage*));
     memset(messageStackLastUsed, 0, RECEIVE_STACK_SIZE * sizeof(uint32_t));
-
-#if defined(USE_CAN_ISR)
-    pinMode(interruptPin, INPUT | INPUT_PULLUP);
-#endif
   };
 
   ~HovalProtocolHandler()
@@ -131,6 +115,8 @@ public:
   void setGatewayId(uint16_t gatewayId) { this->gatewayId = gatewayId; }
 
   bool task();
+
+  CanErrorInfo checkTransportErrors() { return canTransport->checkErrors(); }
 
   bool sendMessage(uint16_t sender, uint16_t target, HovalFunctionCode functionCode, const HovalMessageType* type, uint8_t* body, uint8_t bodyLength);
 

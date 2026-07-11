@@ -40,10 +40,6 @@ void Knx2HovalGatewayModule::setup(bool configured)
 
   showInformations();
 
-  // Init Can
-  CAN_SPI.begin();
-  CAN.setSPI(&CAN_SPI);
-
   // Init Hoval
   hoval2KNX.setRequestInterval(this->requestInterval);
   hoval2KNX.setGatewayId(this->gatewayUnitId);
@@ -103,39 +99,41 @@ void Knx2HovalGatewayModule::loop()
 
 inline bool Knx2HovalGatewayModule::checkCanError()
 {
-  uint8_t err_ptr;
-  if (CAN.checkError(&err_ptr) != CAN_OK)
+  CanErrorInfo errorInfo = hoval.checkTransportErrors();
+
+  if (errorInfo.overflowDetected)
   {
-    uint8_t rxStatus = (CAN.readRxTxStatus() & MCP_STAT_RXIF_MASK);
-    logErrorP("CAN error: %#02X; RX-Status: %#02X", err_ptr, rxStatus);
-
-    uint16_t errorCode = (err_ptr << 8) | rxStatus;
-    if (errorCode != lastCanError)
-    {
-      lastCanError = errorCode;
-      char errorStringBuf[15];
-
-      snprintf(errorStringBuf, 15, "CAN-E %#02X R %#01X", err_ptr, rxStatus);
-      KoHOV_general_diagnose.value(errorStringBuf, DPT_String_8859_1);
-    }
-
-    canErrorCount++;
-    if (canErrorCount > 20)
-    {
-      logErrorP("Too many CAN errors. Resetting CAN");
-      ready = false; // This will trigger a reconnect on the next iteration.
-      lastReconnectTry = 0;
-      canErrorCount = 0;
-      lastCanError = 0;
-    }
-    return true;
+    logErrorP("CAN RX buffer overflow, message(s) dropped");
   }
-  else
+
+  if (!errorInfo.hasError)
   {
     canErrorCount = 0;
     lastCanError = 0;
+    return errorInfo.overflowDetected;
   }
-  return false;
+
+  logErrorP("CAN error: %#04X", errorInfo.rawErrorFlags);
+
+  if (errorInfo.rawErrorFlags != lastCanError)
+  {
+    lastCanError = errorInfo.rawErrorFlags;
+    char errorStringBuf[15];
+
+    snprintf(errorStringBuf, 15, "CAN-E %#04X", errorInfo.rawErrorFlags);
+    KoHOV_general_diagnose.value(errorStringBuf, DPT_String_8859_1);
+  }
+
+  canErrorCount++;
+  if (canErrorCount > 20)
+  {
+    logErrorP("Too many CAN errors. Resetting CAN");
+    ready = false; // This will trigger a reconnect on the next iteration.
+    lastReconnectTry = 0;
+    canErrorCount = 0;
+    lastCanError = 0;
+  }
+  return true;
 }
 
 inline bool Knx2HovalGatewayModule::checkActive()
@@ -340,19 +338,6 @@ bool Knx2HovalGatewayModule::processCommand(const std::string cmd, bool diagnose
     }
   }
 
-  if (command.substr(0, 4) == "can ")
-  {
-    command = command.substr(4);
-
-    if (command.substr(0, 5) == "read ")
-    {
-      std::string commandValue = command.substr(5);
-      uint8_t reg = strtol(commandValue.c_str(), nullptr, 0);
-      logInfoP("Read CAN register %#02X: %#02X", reg, CAN.readRegister(reg));
-      return true;
-    }
-  }
-
   return false;
 }
 
@@ -362,7 +347,6 @@ void Knx2HovalGatewayModule::showHelp()
   openknx.console.printHelpLine("hov log msgData", "Log payload of received (known) messages");
   openknx.console.printHelpLine("hov log filt", "Log header of filtered messages");
   openknx.console.printHelpLine("hov log filtaiData", "Log payload of filtered messages");
-  openknx.console.printHelpLine("hov can read <register>", "Read a CAN register");
 }
 
 void Knx2HovalGatewayModule::showInformations()
