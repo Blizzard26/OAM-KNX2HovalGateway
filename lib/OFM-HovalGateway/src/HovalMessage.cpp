@@ -1,6 +1,5 @@
 #include "HovalMessage.h"
-#include "OpenKNX.h"
-#include "OpenKNX/Log/Logger.h"
+#include <Log.h>
 #include "crc/HovalCrc.h"
 #include <math.h>
 #include <stdint.h>
