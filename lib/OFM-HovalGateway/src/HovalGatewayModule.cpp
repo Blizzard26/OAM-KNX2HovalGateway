@@ -224,6 +224,59 @@ void Knx2HovalGatewayModule::processInputKo(GroupObject& ko)
   }
 }
 
+// Version + 1 byte of initialized flags (1 bit per KO) + 2 KOs * DPT_Scaling data byte
+#define HOV_FLASH_VERSION 1
+#define HOV_FLASH_FLAG_PARTY_VALUE_INITIALIZED (1 << 0)
+#define HOV_FLASH_FLAG_PAUSE_VALUE_INITIALIZED (1 << 1)
+
+uint16_t Knx2HovalGatewayModule::flashSize()
+{
+  return 1 + 1 + 2;
+}
+
+void Knx2HovalGatewayModule::writeFlash()
+{
+  GroupObject& partyValueKo = KoHOV_vent_party_value;
+  GroupObject& pauseValueKo = KoHOV_vent_pause_value;
+
+  uint8_t flags = 0;
+  if (partyValueKo.initialized())
+    flags |= HOV_FLASH_FLAG_PARTY_VALUE_INITIALIZED;
+  if (pauseValueKo.initialized())
+    flags |= HOV_FLASH_FLAG_PAUSE_VALUE_INITIALIZED;
+
+  openknx.flash.writeByte(HOV_FLASH_VERSION);
+  openknx.flash.writeByte(flags);
+  openknx.flash.writeByte(partyValueKo.initialized() ? (uint8_t)partyValueKo.value(DPT_Scaling) : 0);
+  openknx.flash.writeByte(pauseValueKo.initialized() ? (uint8_t)pauseValueKo.value(DPT_Scaling) : 0);
+}
+
+void Knx2HovalGatewayModule::readFlash(const uint8_t* data, const uint16_t size)
+{
+  if (size == 0) // first call - without data
+    return;
+
+  uint8_t version = openknx.flash.readByte();
+  if (version != HOV_FLASH_VERSION)
+  {
+    logDebugP("Wrong version of flash data (%i)", version);
+    return;
+  }
+
+  uint8_t flags = openknx.flash.readByte();
+  uint8_t partyValue = openknx.flash.readByte();
+  uint8_t pauseValue = openknx.flash.readByte();
+
+  if (flags & HOV_FLASH_FLAG_PARTY_VALUE_INITIALIZED)
+  {
+    KoHOV_vent_party_value.valueNoSend(partyValue, DPT_Scaling);
+  }
+  if (flags & HOV_FLASH_FLAG_PAUSE_VALUE_INITIALIZED)
+  {
+    KoHOV_vent_pause_value.valueNoSend(pauseValue, DPT_Scaling);
+  }
+}
+
 const std::string Knx2HovalGatewayModule::name()
 {
   return std::string("KNX2HovalGateway");
