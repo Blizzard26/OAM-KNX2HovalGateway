@@ -41,27 +41,39 @@ jobs:
           echo "Build target: $TARGET"
 
       - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
       # Build-Dependencies.ps1 (called from Build-Release-Postprocess.ps1) aborts when a
       # submodule is on a detached HEAD, which is exactly what actions/checkout produces.
-      # Create a local branch at the pinned commit, named after the submodule's default branch.
+      # Point HEAD at a local branch named after the submodule's default branch. "switch -C"
+      # (force-create) is required because the clone may already have that branch at the
+      # remote tip; it resets the branch to the pinned commit instead of failing, so the
+      # checked-out code does not move.
       - name: Put submodules on a named branch
         run: |
-          git submodule status --recursive | awk '{print $2}' | while read -r sm; do
+          set -euo pipefail
+          git submodule status --recursive | awk '{print $2}' > /tmp/submodules.txt
+          while read -r sm; do
             b=$(git -C "$sm" ls-remote --symref origin HEAD 2>/dev/null \
-                | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2; exit }')
-            [ -z "$b" ] && b=ci
-            git -C "$sm" switch -c "$b" >/dev/null 2>&1 \
-              || git -C "$sm" checkout -b "$b" >/dev/null 2>&1 || true
+                | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2; exit }') || true
+            if [ -z "$b" ]; then b=ci; fi
+            git -C "$sm" switch -C "$b"
             echo "$sm -> $(git -C "$sm" branch --show-current) @ $(git -C "$sm" rev-parse --short HEAD)"
-          done
+          done < /tmp/submodules.txt
+
+          # Fail fast here rather than deep inside the release build
+          while read -r sm; do
+            if [ -z "$(git -C "$sm" branch --show-current)" ]; then
+              echo "::error::$sm is still on a detached HEAD"
+              exit 1
+            fi
+          done < /tmp/submodules.txt
 
       - name: Cache OpenKNXproducer
         id: cache-producer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/producer
           key: openknxproducer-linux-${{ env.PRODUCER_VERSION }}
@@ -92,12 +104,12 @@ jobs:
           OpenKNXproducer version || true
 
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache PlatformIO toolchains
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.platformio/.cache
@@ -122,7 +134,7 @@ jobs:
         run: ./scripts/Build-Release.ps1 ${{ steps.target.outputs.target }}
 
       - name: Upload release package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: KNX2HovalGateway-${{ steps.target.outputs.target }}-${{ github.run_number }}
           path: release/*.zip
