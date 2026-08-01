@@ -1,0 +1,129 @@
+name: Build
+
+# Branches and pull requests build the "dev" variant, main builds "Release".
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target passed to scripts/Build-Release.ps1 (dev or Release)'
+        required: false
+        default: 'dev'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Keep in sync with the OpenKNX-Toolbox version used for local builds.
+      PRODUCER_VERSION: '4.3.5'
+      PYTHON_VERSION: '3.13'
+
+    steps:
+      - name: Determine build target
+        id: target
+        run: |
+          if [ -n "${{ github.event.inputs.target }}" ]; then
+            TARGET="${{ github.event.inputs.target }}"
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TARGET="Release"
+          else
+            TARGET="dev"
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "Build target: $TARGET"
+
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Build-Dependencies.ps1 (called from Build-Release-Postprocess.ps1) aborts when a
+      # submodule is on a detached HEAD, which is exactly what actions/checkout produces.
+      # Create a local branch at the pinned commit, named after the submodule's default branch.
+      - name: Put submodules on a named branch
+        run: |
+          git submodule status --recursive | awk '{print $2}' | while read -r sm; do
+            b=$(git -C "$sm" ls-remote --symref origin HEAD 2>/dev/null \
+                | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2; exit }')
+            [ -z "$b" ] && b=ci
+            git -C "$sm" switch -c "$b" >/dev/null 2>&1 \
+              || git -C "$sm" checkout -b "$b" >/dev/null 2>&1 || true
+            echo "$sm -> $(git -C "$sm" branch --show-current) @ $(git -C "$sm" rev-parse --short HEAD)"
+          done
+
+      - name: Cache OpenKNXproducer
+        id: cache-producer
+        uses: actions/cache@v4
+        with:
+          path: ~/producer
+          key: openknxproducer-linux-${{ env.PRODUCER_VERSION }}
+
+      - name: Download OpenKNXproducer ${{ env.PRODUCER_VERSION }}
+        if: steps.cache-producer.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/producer /tmp/producer
+          curl -fsSL -o /tmp/producer/producer.zip \
+            "https://github.com/OpenKNX/OpenKNXproducer/releases/download/v${PRODUCER_VERSION}/OpenKNXproducer-${PRODUCER_VERSION}.zip"
+          unzip -q /tmp/producer/producer.zip -d /tmp/producer/extracted
+          BIN=$(find /tmp/producer/extracted -type f -path '*Linux*' -name 'OpenKNXproducer' | head -n1)
+          if [ -z "$BIN" ]; then
+            echo "::error::No Linux OpenKNXproducer binary found in the release archive"
+            find /tmp/producer/extracted -maxdepth 3 -type f | head -50
+            exit 1
+          fi
+          cp -v "$BIN" ~/producer/OpenKNXproducer
+          chmod +x ~/producer/OpenKNXproducer
+
+      # Build-Release-Preprocess.ps1 looks for the producer at this exact path on Linux.
+      - name: Install OpenKNXproducer
+        run: |
+          sudo cp -v ~/producer/OpenKNXproducer /usr/local/bin/OpenKNXproducer
+          sudo chmod +x /usr/local/bin/OpenKNXproducer
+          # the producer exits 1 even on success for "version"
+          OpenKNXproducer version || true
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache PlatformIO toolchains
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.platformio/packages
+            ~/.platformio/platforms
+          key: pio-${{ runner.os }}-${{ hashFiles('lib/OGM-Common/platformio.base.ini', 'lib/OGM-Common/platformio.rp2040.ini', 'platformio.custom.ini') }}
+          restore-keys: |
+            pio-${{ runner.os }}-
+
+      # Build-Step.ps1 invokes ~/.platformio/penv/bin/pio directly, so PlatformIO has to
+      # live in that virtualenv - a plain "pip install platformio" is not enough.
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install virtualenv
+          python -m virtualenv ~/.platformio/penv
+          ~/.platformio/penv/bin/pip install platformio
+          ~/.platformio/penv/bin/pio --version
+
+      - name: Build ${{ steps.target.outputs.target }}
+        shell: pwsh
+        run: ./scripts/Build-Release.ps1 ${{ steps.target.outputs.target }}
+
+      - name: Upload release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: KNX2HovalGateway-${{ steps.target.outputs.target }}-${{ github.run_number }}
+          path: release/*.zip
+          if-no-files-found: error
