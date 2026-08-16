@@ -174,6 +174,7 @@ struct HovalMessage
   bool addToBody(const uint8_t* data, uint8_t length);
 
   bool validateCrc();
+  uint16_t calculateCrc() const;
 
   void printBody(char* buf, uint8_t bufLen);
 
@@ -212,6 +213,8 @@ private:
   inline static constexpr uint16_t bigEndianToUint16(const uint8_t* body);
   inline static constexpr uint32_t bigEndianToUint32(const uint8_t* body);
   inline static constexpr int64_t bigEndianToInt64(const uint8_t* body);
+
+  uint16_t computeCrc(uint8_t payloadLength) const;
 
   char mapErrorType(uint8_t errorType) const;
 };

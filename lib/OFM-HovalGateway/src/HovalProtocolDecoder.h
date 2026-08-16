@@ -95,6 +95,7 @@ class HovalProtocolHandler
 
   inline uint32_t buildAddress(uint8_t messageIndex, bool firstMessage, bool lastMessage, uint16_t sender, uint16_t target);
   inline void sendSingleMessage(HovalMessage* message);
+  inline void sendMultiPartMessage(HovalMessage* message);
 
   inline bool doSend();
 
